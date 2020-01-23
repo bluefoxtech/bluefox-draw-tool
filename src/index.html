@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>OpusMap Draw Tool </title>
+  <link rel="shortcut icon" href="./favicon.ico">
+  <!-- for older browsers -->
+  <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL"></script>
+</head>
+
+<body>
+  <div id="map-container"></div>
+  <div id="tools">
+    <form id="options-form" automplete="off">
+      <h4>Drawing Mode</h4>
+      <div class="radio">
+        <label>
+          <input type="radio" name="interaction" value="draw" id="draw" checked>
+          Draw &nbsp;
+        </label>
+        <div class="form-group">
+          <label>Draw type &nbsp;</label>
+          <select name="draw-type" id="draw-type">
+            <option value="Polygon">Polygon</option>
+          </select>
+        </div>
+      </div>
+      <div class="radio">
+        <label>
+          <input type="radio" name="interaction" value="modify">
+          Modify &nbsp;
+        </label>
+      </div>
+      <div class="radio">
+        <label>
+          <input type="radio" name="interaction" value="delete">
+          Delete &nbsp;
+        </label>
+      </div>
+   
+    </form>
+    <div>
+      <button id="clear">Clear All</button>
+    </div>
+    <form>
+      <input type="reset" name="submit-drawing" id="submit-drawing" value="Submit">
+    </form>
+    
+  </div>
+</body>
+</html>
