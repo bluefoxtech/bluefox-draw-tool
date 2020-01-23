@@ -298,6 +298,8 @@ if (localStorage.getItem('polygon-features') === null) {
       const features = drawingSource.getFeatures();
       const jsonFeatures = format.writeFeatures(features);
 
+      console.log('JSON', features);
+
       // convert json to object and add polygon-id
       const jsonFeaturesToObject = JSON.parse(jsonFeatures);
       const polygonFeatures = jsonFeaturesToObject.features;
@@ -316,6 +318,12 @@ if (localStorage.getItem('polygon-features') === null) {
         drawnPolygons.pop();
       }
       drawnPolygons.push(jsonFeaturesToObject);
+
+      // insert USER ID from JDi
+      const userId = "jdi-id-random-id";
+
+      // add user id to features drawn
+      drawnPolygons[0]["user_id"] = userId;
 
       // add to local storage
       const jsonFeaturesToString = JSON.stringify(jsonFeaturesToObject);
@@ -412,5 +420,4 @@ clear.addEventListener('click', function () {
     window.location.reload();
   }
 });
-
 
