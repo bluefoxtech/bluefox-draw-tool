@@ -11,7 +11,7 @@ import Snap from 'ol/interaction/Snap';
 import Select from 'ol/interaction/Select';
 import { Fill, Stroke, Style } from 'ol/style';
 import { fromLonLat } from 'ol/proj';
-import {defaults as defaultControls, Attribution} from 'ol/control';
+import { defaults as defaultControls, Attribution } from 'ol/control';
 import "./main.css";
 
 // Global variables
@@ -33,7 +33,7 @@ const map = new Map({
       })
     })
   ],
-  controls: defaultControls({attribution: false}).extend([attribution]),
+  controls: defaultControls({ attribution: false }).extend([attribution]),
   view: new View({
     center: fromLonLat([-3.82877, 53.28088]),
     zoom: 17.5
@@ -190,10 +190,10 @@ const DeletePolygon = {
     map.addInteraction(this.deleteSelect);
     this.setEvents();
 
-    
+
     // get features from the selected polygon
     this.deleteSelect.getFeatures().on('add', function (feature) {
-      function checkDelete(){
+      function checkDelete() {
         if (confirm("Are you sure you want to delete?")) {
           if (feature) {
             // try removing from drawingSource first
@@ -207,11 +207,11 @@ const DeletePolygon = {
             try {
               savedPolygonsSource.removeFeature(feature.element);
               feature.target.remove(feature.element);
-  
+
               // find the polygon index position in drawnPolygons array and remove
               let position = drawnPolygons[0].features.findIndex(item => item.id === feature.element.id_);
               let deletedItems = drawnPolygons[0].features.splice(position, 1)
-  
+
               // store updated drawnPolygons array in local storage
               const drawnPolygonsToString = JSON.stringify(drawnPolygons[0]);
               localStorage.setItem('polygon-features', drawnPolygonsToString)
@@ -363,7 +363,7 @@ if (localStorage.getItem('polygon-features') === null) {
 
 // function to retrieve features from local storage
 function retrieveFeaturesFromLocalStorage() {
-    // If there are features stored in Local Storage('polygon-features') then
+  // If there are features stored in Local Storage('polygon-features') then
   // retrieve polygon coords from local storage, convert to object
   const retrieveLocalStorage = localStorage.getItem('polygon-features');
   const convertLocalStorageToObject = JSON.parse(retrieveLocalStorage);
@@ -409,12 +409,21 @@ submitButton.addEventListener('click', function () {
     alert("You cannot submit an empty drawing.");
   } else {
     if (confirm("Are you sure you want to submit?")) {
+      if (localStorage.getItem('new-polygon-features') !== null) {
+        retrieveFeaturesFromLocalStorage();
+      }
+
+      const saveLocalStorageToDatabase = JSON.parse(localStorage.getItem('polygon-features'));
+      console.log('local storage', saveLocalStorageToDatabase);
+      
       // const featuresInLocalStorage = localStorage.getItem()
       // localStorage.clear();
-      window.location = "submit.html";
-    } 
+      // window.location = "submit.html";
+    }
   }
 });
+
+
 
 // clear all changes to map 
 const clear = document.getElementById('clear');
@@ -428,34 +437,34 @@ clear.addEventListener('click', function () {
 });
 
 // load draft
-const postmanServerURL = "https://37e794d2-e93e-49c9-876f-6abcac26fbd3.mock.pstmn.io/database";
+const postmanServerUrlGet = "https://37e794d2-e93e-49c9-876f-6abcac26fbd3.mock.pstmn.io/database";
 
 const loadDraft = document.getElementById('load-draft');
 loadDraft.addEventListener('click', (e) => {
-let h = new Headers();
+  let h = new Headers();
 
-// request options 
-let options = {
-  method: 'GET',
-  headers: h,
-  mode: 'cors',
-  cache: 'default'
-}
+  // request options 
+  let options = {
+    method: 'GET',
+    headers: h,
+    mode: 'cors',
+    cache: 'default'
+  }
 
-let req = new Request(postmanServerURL, options);
+  let req = new Request(postmanServerUrlGet, options);
 
-fetch(req)
-  .then(response => {
-    return response.text();
-  })
-  .then(data => {
-    console.log(data)
-    let output = data;
-    localStorage.setItem('polygon-features', output);
-    setTimeout(() => location.reload(), 500);
-  })
-  .catch(err => {
-    console.log(err)
-  })
+  fetch(req)
+    .then(response => {
+      return response.text();
+    })
+    .then(data => {
+      console.log(data)
+      let output = data;
+      localStorage.setItem('polygon-features', output);
+      setTimeout(() => location.reload(), 500);
+    })
+    .catch(err => {
+      console.log(err)
+    })
 });
 
