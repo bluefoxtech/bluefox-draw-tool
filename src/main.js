@@ -426,8 +426,8 @@ const postmanServerURL = "https://37e794d2-e93e-49c9-876f-6abcac26fbd3.mock.pstm
 
 const loadDraft = document.getElementById('load-draft');
 loadDraft.addEventListener('click', (e) => {
-console.log('click')
 let h = new Headers();
+
 // request options 
 let options = {
   method: 'GET',
@@ -437,7 +437,7 @@ let options = {
 }
 
 let req = new Request(postmanServerURL, options);
-console.log(req)
+
 fetch(req)
   .then(response => {
     return response.text();
@@ -451,6 +451,5 @@ fetch(req)
   .catch(err => {
     console.log(err)
   })
-
-})
+});
 
