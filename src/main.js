@@ -331,7 +331,39 @@ if (localStorage.getItem('polygon-features') === null) {
     });
   }
 } else {
-  // If there are features stored in Local Storage('polygon-features') then
+
+  retrieveFeaturesFromLocalStorage();
+
+  // polygons drawn after browser closed/refreshed
+  drawingSource.on('change', function () {
+    const features = drawingSource.getFeatures();
+    let json = format.writeFeatures(features);
+
+    //  convert json to object
+    const jsonToObject = JSON.parse(json);
+
+    // extract "features" object
+    const featuresObject = jsonToObject["features"];
+
+    // add id to features object for each polygon
+    const ids = [];
+
+    for (let i = 0; i < features.length; i++) {
+      ids.push(features[i].ol_uid);
+      for (let j = 0; j < ids.length; j++) {
+        featuresObject[j]['id'] = parseInt(ids[j]);
+      }
+    }
+
+    // store in local storage
+    const newPolygonsObjectToString = JSON.stringify(jsonToObject);
+    localStorage.setItem('new-polygon-features', newPolygonsObjectToString);
+  });
+}
+
+// function to retrieve features from local storage
+function retrieveFeaturesFromLocalStorage() {
+    // If there are features stored in Local Storage('polygon-features') then
   // retrieve polygon coords from local storage, convert to object
   const retrieveLocalStorage = localStorage.getItem('polygon-features');
   const convertLocalStorageToObject = JSON.parse(retrieveLocalStorage);
@@ -366,34 +398,7 @@ if (localStorage.getItem('polygon-features') === null) {
 
   // pushes the object back into the drawnPolygons array
   drawnPolygons.push(drawnPolygonsFromArrayToObject);
-
-  // polygons drawn after browser closed/refreshed
-  drawingSource.on('change', function () {
-    const features = drawingSource.getFeatures();
-    let json = format.writeFeatures(features);
-
-    //  convert json to object
-    const jsonToObject = JSON.parse(json);
-
-    // extract "features" object
-    const featuresObject = jsonToObject["features"];
-
-    // add id to features object for each polygon
-    const ids = [];
-
-    for (let i = 0; i < features.length; i++) {
-      ids.push(features[i].ol_uid);
-      for (let j = 0; j < ids.length; j++) {
-        featuresObject[j]['id'] = parseInt(ids[j]);
-      }
-    }
-
-    // store in local storage
-    const newPolygonsObjectToString = JSON.stringify(jsonToObject);
-    localStorage.setItem('new-polygon-features', newPolygonsObjectToString);
-  });
 }
-
 
 // submit button
 const submitButton = document.getElementById('submit-drawing');
@@ -404,7 +409,8 @@ submitButton.addEventListener('click', function () {
     alert("You cannot submit an empty drawing.");
   } else {
     if (confirm("Are you sure you want to submit?")) {
-      localStorage.clear();
+      // const featuresInLocalStorage = localStorage.getItem()
+      // localStorage.clear();
       window.location = "submit.html";
     } 
   }
