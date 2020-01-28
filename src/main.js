@@ -361,7 +361,9 @@ if (localStorage.getItem('polygon-features') === null) {
   });
 }
 
-// function to retrieve features from local storage
+/*
+function to retrieve features from local storage
+*/ 
 function retrieveFeaturesFromLocalStorage() {
   // If there are features stored in Local Storage('polygon-features') then
   // retrieve polygon coords from local storage, convert to object
@@ -400,7 +402,9 @@ function retrieveFeaturesFromLocalStorage() {
   drawnPolygons.push(drawnPolygonsFromArrayToObject);
 }
 
-// submit button
+/*
+SUBMIT BUTTON
+*/ 
 const submitButton = document.getElementById('submit-drawing');
 submitButton.addEventListener('click', function () {
   if (drawnPolygons.length === 0) {
@@ -423,9 +427,9 @@ submitButton.addEventListener('click', function () {
   }
 });
 
-
-
-// clear all changes to map 
+/*
+CLEAR ALL BUTTON
+*/ 
 const clear = document.getElementById('clear');
 clear.addEventListener('click', function () {
   if (window.confirm("Are you sure you want to delete your drawing(s)?")) {
@@ -436,7 +440,9 @@ clear.addEventListener('click', function () {
   }
 });
 
-// load draft
+/*
+LOAD DRAFT BUTTON
+*/ 
 const postmanServerUrlGet = "https://37e794d2-e93e-49c9-876f-6abcac26fbd3.mock.pstmn.io/database";
 
 const loadDraft = document.getElementById('load-draft');
