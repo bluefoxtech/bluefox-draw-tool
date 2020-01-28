@@ -111,7 +111,7 @@ const ModifyPolygon = {
       const modifyFeatureCoords = format.writeFeatures(e.features.array_);
       const modifyFeatureCoordsToObject = JSON.parse(modifyFeatureCoords);
       const drawnPolygonsFeatures = drawnPolygons[0].features;
-      // loop through polygons in local storage by ID and old features with modified features
+      // loop through polygons in local storage by ID and replace old features with modified features
       for (let i = 0; i < drawnPolygonsFeatures.length; i++) {
         if (drawnPolygonsFeatures[i].id === modifyFeatureCoordsToObject.features[0].id) {
           drawnPolygonsFeatures[i] = modifyFeatureCoordsToObject.features[0];
@@ -420,9 +420,7 @@ submitButton.addEventListener('click', function () {
       const saveLocalStorageToDatabase = JSON.parse(localStorage.getItem('polygon-features'));
       console.log('local storage', saveLocalStorageToDatabase);
       
-      // const featuresInLocalStorage = localStorage.getItem()
-      // localStorage.clear();
-      // window.location = "submit.html";
+      // NEED TO COMPLETE - save to database then clear local storage
     }
   }
 });
@@ -474,3 +472,25 @@ loadDraft.addEventListener('click', (e) => {
     })
 });
 
+/*
+SAVE DRAFT BUTTON
+*/
+const saveDraftButton = document.getElementById('save-draft');
+saveDraftButton.addEventListener('click', function () {
+  if (drawnPolygons.length === 0) {
+    alert("You cannot save an empty drawing.");
+  } else if (drawnPolygons[0].features.length === 0 && drawnPolygons.length === 1) {
+    alert("You cannot save an empty drawing.");
+  } else {
+    if (confirm("Are you sure you want to save?")) {
+      if (localStorage.getItem('new-polygon-features') !== null) {
+        retrieveFeaturesFromLocalStorage();
+      }
+
+      const saveDraftToLocalStorageToDatabase = JSON.parse(localStorage.getItem('polygon-features'));
+      console.log('local storage save draft', saveDraftToLocalStorageToDatabase);
+      
+      // NEED TO COMPLETE - save to database then clear local storage
+    }
+  }
+});
