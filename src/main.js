@@ -286,6 +286,21 @@ sync(map);
 // format of map
 const format = new GeoJSON({ featureProjection: 'EPSG:3857' });
 
+// function to format area of polygon
+const formatArea = function(polygon) {
+  const area = getArea(polygon);
+  console.log('area', area)
+  let output;
+  if (area > 10000) {
+    output = (Math.round(area / 1000000 * 100) / 100) +
+        ' ' + 'km<sup>2</sup>';
+  } else {
+    output = (Math.round(area * 100) / 100) +
+        ' ' + 'm<sup>2</sup>';
+  }
+  return output;
+};
+
 /*
 SAVE FEATURE TO LOCALSTORAGE
 Polygons will persist if user closes/refreshes/opens new tab in browser
@@ -300,10 +315,14 @@ if (localStorage.getItem('polygon-features') === null) {
       const jsonFeatures = format.writeFeatures(features);
 
       const geom = features[0].values_.geometry;
-      const area = getArea(geom);
+      // const area = getArea(geom);
       console.log('geom', geom);
-      console.log('area', area);
-      
+      // console.log('area', area);
+
+      let output;
+      output = formatArea(geom);
+
+      console.log(output)
       // convert json to object and add polygon-id
       const jsonFeaturesToObject = JSON.parse(jsonFeatures);
       const polygonFeatures = jsonFeaturesToObject.features;
