@@ -13,6 +13,7 @@ import { Fill, Stroke, Style } from 'ol/style';
 import { fromLonLat } from 'ol/proj';
 import { defaults as defaultControls, Attribution } from 'ol/control';
 import {getArea, getLength} from 'ol/sphere';
+import Overlay from 'ol/Overlay';
 import "./main.css";
 
 // Global variables
@@ -286,7 +287,52 @@ sync(map);
 // format of map
 const format = new GeoJSON({ featureProjection: 'EPSG:3857' });
 
-// function to format area of polygon
+// tooltip to show area of polygon
+let measureTooltip;
+let tooltipCoord;
+let measureTooltipElement;
+
+createMeasureTooltip();
+
+/**
+ * Creates a new help tooltip
+ */
+function createHelpTooltip() {
+  if (helpTooltipElement) {
+    helpTooltipElement.parentNode.removeChild(helpTooltipElement);
+  }
+  helpTooltipElement = document.createElement('div');
+  helpTooltipElement.className = 'ol-tooltip hidden';
+  helpTooltip = new Overlay({
+    element: helpTooltipElement,
+    offset: [15, 0],
+    positioning: 'center-left'
+  });
+  map.addOverlay(helpTooltip);
+}
+
+
+/**
+ * Creates a new measure tooltip
+ */
+function createMeasureTooltip() {
+  if (measureTooltipElement) {
+    measureTooltipElement.parentNode.removeChild(measureTooltipElement);
+  }
+  measureTooltipElement = document.createElement('div');
+  measureTooltipElement.className = 'ol-tooltip ol-tooltip-measure';
+  measureTooltip = new Overlay({
+    element: measureTooltipElement,
+    offset: [0, -15],
+    positioning: 'bottom-center'
+  });
+  map.addOverlay(measureTooltip);
+}
+
+
+/**
+ * function to format area of polygon
+ */ 
 const formatArea = function(polygon) {
   const area = getArea(polygon);
   console.log('area', area)
@@ -301,6 +347,7 @@ const formatArea = function(polygon) {
   return output;
 };
 
+
 /*
 SAVE FEATURE TO LOCALSTORAGE
 Polygons will persist if user closes/refreshes/opens new tab in browser
@@ -310,10 +357,11 @@ Polygons will persist if user closes/refreshes/opens new tab in browser
 if (localStorage.getItem('polygon-features') === null) {
   // if there's nothing stored in localStorage and the drawnPolygons array is empty
   if (drawnPolygons.length === 0) {
-    drawingSource.on('change', function () {
+    drawingSource.on('change', function (evt) {
       const features = drawingSource.getFeatures();
       const jsonFeatures = format.writeFeatures(features);
 
+      console.log('features', features);
       const geom = features[0].values_.geometry;
       // const area = getArea(geom);
       console.log('geom', geom);
@@ -323,6 +371,12 @@ if (localStorage.getItem('polygon-features') === null) {
       output = formatArea(geom);
 
       console.log(output)
+      tooltipCoord = geom.getInteriorPoint().getCoordinates();
+      console.log('tooltipcoord', tooltipCoord);
+      measureTooltipElement.innerHTML = output;
+      measureTooltip.setPosition(tooltipCoord);
+
+
       // convert json to object and add polygon-id
       const jsonFeaturesToObject = JSON.parse(jsonFeatures);
       const polygonFeatures = jsonFeaturesToObject.features;
