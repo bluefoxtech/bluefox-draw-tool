@@ -12,6 +12,7 @@ import Select from 'ol/interaction/Select';
 import { Fill, Stroke, Style } from 'ol/style';
 import { fromLonLat } from 'ol/proj';
 import { defaults as defaultControls, Attribution } from 'ol/control';
+import {getArea, getLength} from 'ol/sphere';
 import "./main.css";
 
 // Global variables
@@ -298,8 +299,11 @@ if (localStorage.getItem('polygon-features') === null) {
       const features = drawingSource.getFeatures();
       const jsonFeatures = format.writeFeatures(features);
 
-      console.log('JSON', features);
-
+      const geom = features[0].values_.geometry;
+      const area = getArea(geom);
+      console.log('geom', geom);
+      console.log('area', area);
+      
       // convert json to object and add polygon-id
       const jsonFeaturesToObject = JSON.parse(jsonFeatures);
       const polygonFeatures = jsonFeaturesToObject.features;
@@ -494,3 +498,7 @@ saveDraftButton.addEventListener('click', function () {
     }
   }
 });
+
+/*
+Measuring function
+*/
