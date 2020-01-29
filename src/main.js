@@ -295,30 +295,12 @@ let measureTooltipElement;
 createMeasureTooltip();
 
 /**
- * Creates a new help tooltip
- */
-function createHelpTooltip() {
-  if (helpTooltipElement) {
-    helpTooltipElement.parentNode.removeChild(helpTooltipElement);
-  }
-  helpTooltipElement = document.createElement('div');
-  helpTooltipElement.className = 'ol-tooltip hidden';
-  helpTooltip = new Overlay({
-    element: helpTooltipElement,
-    offset: [15, 0],
-    positioning: 'center-left'
-  });
-  map.addOverlay(helpTooltip);
-}
-
-
-/**
  * Creates a new measure tooltip
  */
 function createMeasureTooltip() {
-  if (measureTooltipElement) {
-    measureTooltipElement.parentNode.removeChild(measureTooltipElement);
-  }
+  // if (measureTooltipElement) {
+  //   measureTooltipElement.parentNode.removeChild(measureTooltipElement);
+  // }
   measureTooltipElement = document.createElement('div');
   measureTooltipElement.className = 'ol-tooltip ol-tooltip-measure';
   measureTooltip = new Overlay({
@@ -336,14 +318,11 @@ function createMeasureTooltip() {
 const formatArea = function(polygon) {
   const area = getArea(polygon);
   console.log('area', area)
-  let output;
-  if (area > 10000) {
-    output = (Math.round(area / 1000000 * 100) / 100) +
-        ' ' + 'km<sup>2</sup>';
-  } else {
-    output = (Math.round(area * 100) / 100) +
-        ' ' + 'm<sup>2</sup>';
-  }
+  let output = area/10000
+  
+  output = (Math.round(output * 100) / 100) +
+        ' ' + 'ha';
+
   return output;
 };
 
@@ -360,22 +339,20 @@ if (localStorage.getItem('polygon-features') === null) {
     drawingSource.on('change', function (evt) {
       const features = drawingSource.getFeatures();
       const jsonFeatures = format.writeFeatures(features);
-
+      
       console.log('features', features);
-      const geom = features[0].values_.geometry;
-      // const area = getArea(geom);
+      const geom = features[features.length-1].values_.geometry;
       console.log('geom', geom);
-      // console.log('area', area);
 
       let output;
       output = formatArea(geom);
-
-      console.log(output)
+      console.log('output', output)#
+      
       tooltipCoord = geom.getInteriorPoint().getCoordinates();
       console.log('tooltipcoord', tooltipCoord);
       measureTooltipElement.innerHTML = output;
       measureTooltip.setPosition(tooltipCoord);
-
+      
 
       // convert json to object and add polygon-id
       const jsonFeaturesToObject = JSON.parse(jsonFeatures);
