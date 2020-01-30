@@ -290,12 +290,34 @@ const format = new GeoJSON({ featureProjection: 'EPSG:3857' });
  */
 const formatArea = function (polygon) {
   const area = getArea(polygon);
-  console.log('area', area)
   let output = area / 10000
   output = (Math.round(output * 1000) / 1000) + ' ' + 'ha';
   return output;
 };
 
+/**
+ * style function
+ **/ 
+function stylePolygon(feature) {
+  return [
+    new Style({
+      stroke: new Stroke({
+        color: 'red'
+      }),
+      fill: new Fill({
+        color: 'rgba(255, 255, 255, 0.3)'
+      }),
+      text: new Text({
+        font: '12px Calibri,sans-serif',
+        fill: new Fill({
+          color: '#ffffff'
+        }),
+        // add polygon area as text
+        text: feature.get('polygon-area')
+      })
+    })
+  ]
+}
 
 /*
 SAVE FEATURE TO LOCALSTORAGE
@@ -318,29 +340,6 @@ if (localStorage.getItem('polygon-features') === null) {
 
       // set the style of the drawing layer 
       drawingLayer.setStyle(stylePolygon)
-
-      // style function
-      function stylePolygon(feature) {
-        return [
-          new Style({
-            stroke: new Stroke({
-              color: 'red'
-            }),
-            fill: new Fill({
-              color: 'rgba(255, 255, 255, 0.3)'
-            }),
-            text: new Text({
-              font: '12px Calibri,sans-serif',
-              fill: new Fill({
-                color: '#ffffff'
-              }),
-              // add polygon area as text
-              text: feature.get('polygon-area')
-            })
-          })
-        ]
-      }
-
 
       // convert json to object and add polygon-id
       const jsonFeatures = format.writeFeatures(features);
