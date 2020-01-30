@@ -9,10 +9,10 @@ import Modify from 'ol/interaction/Modify';
 import Draw from 'ol/interaction/Draw';
 import Snap from 'ol/interaction/Snap';
 import Select from 'ol/interaction/Select';
-import { Fill, Stroke, Style } from 'ol/style';
+import { Fill, Stroke, Style, Text } from 'ol/style';
 import { fromLonLat } from 'ol/proj';
 import { defaults as defaultControls, Attribution } from 'ol/control';
-import {getArea, getLength} from 'ol/sphere';
+import { getArea, getLength } from 'ol/sphere';
 import Overlay from 'ol/Overlay';
 import "./main.css";
 
@@ -231,8 +231,6 @@ const DeletePolygon = {
       }
       setTimeout(checkDelete, 500);
     });
-
-
   },
   setEvents: function () {
     const selectedDeleteFeatures = this.deleteSelect.getFeatures();
@@ -287,42 +285,14 @@ sync(map);
 // format of map
 const format = new GeoJSON({ featureProjection: 'EPSG:3857' });
 
-// tooltip to show area of polygon
-let measureTooltip;
-let tooltipCoord;
-let measureTooltipElement;
-
-createMeasureTooltip();
-
 /**
- * Creates a new measure tooltip
+ * function to format area of polygon and convert to hectares
  */
-function createMeasureTooltip() {
-  // if (measureTooltipElement) {
-  //   measureTooltipElement.parentNode.removeChild(measureTooltipElement);
-  // }
-  measureTooltipElement = document.createElement('div');
-  measureTooltipElement.className = 'ol-tooltip ol-tooltip-measure';
-  measureTooltip = new Overlay({
-    element: measureTooltipElement,
-    offset: [0, -15],
-    positioning: 'bottom-center'
-  });
-  map.addOverlay(measureTooltip);
-}
-
-
-/**
- * function to format area of polygon
- */ 
-const formatArea = function(polygon) {
+const formatArea = function (polygon) {
   const area = getArea(polygon);
   console.log('area', area)
-  let output = area/10000
-  
-  output = (Math.round(output * 100) / 100) +
-        ' ' + 'ha';
-
+  let output = area / 10000
+  output = (Math.round(output * 1000) / 1000) + ' ' + 'ha';
   return output;
 };
 
@@ -338,23 +308,42 @@ if (localStorage.getItem('polygon-features') === null) {
   if (drawnPolygons.length === 0) {
     drawingSource.on('change', function (evt) {
       const features = drawingSource.getFeatures();
-      const jsonFeatures = format.writeFeatures(features);
-      
-      console.log('features', features);
-      const geom = features[features.length-1].values_.geometry;
-      console.log('geom', geom);
 
-      let output;
-      output = formatArea(geom);
-      console.log('output', output)#
-      
-      tooltipCoord = geom.getInteriorPoint().getCoordinates();
-      console.log('tooltipcoord', tooltipCoord);
-      measureTooltipElement.innerHTML = output;
-      measureTooltip.setPosition(tooltipCoord);
-      
+      // loop through features to add polygon area to feature's properties
+      features.forEach(feature => {
+        const geom = feature.values_.geometry;
+        let output = formatArea(geom)
+        feature.set('polygon-area', output)
+      })
+
+      // set the style of the drawing layer 
+      drawingLayer.setStyle(stylePolygon)
+
+      // style function
+      function stylePolygon(feature) {
+        return [
+          new Style({
+            stroke: new Stroke({
+              color: 'red'
+            }),
+            fill: new Fill({
+              color: 'rgba(255, 255, 255, 0.3)'
+            }),
+            text: new Text({
+              font: '12px Calibri,sans-serif',
+              fill: new Fill({
+                color: '#ffffff'
+              }),
+              // add polygon area as text
+              text: feature.get('polygon-area')
+            })
+          })
+        ]
+      }
+
 
       // convert json to object and add polygon-id
+      const jsonFeatures = format.writeFeatures(features);
       const jsonFeaturesToObject = JSON.parse(jsonFeatures);
       const polygonFeatures = jsonFeaturesToObject.features;
 
@@ -417,7 +406,7 @@ if (localStorage.getItem('polygon-features') === null) {
 
 /*
 function to retrieve features from local storage
-*/ 
+*/
 function retrieveFeaturesFromLocalStorage() {
   // If there are features stored in Local Storage('polygon-features') then
   // retrieve polygon coords from local storage, convert to object
@@ -456,9 +445,10 @@ function retrieveFeaturesFromLocalStorage() {
   drawnPolygons.push(drawnPolygonsFromArrayToObject);
 }
 
+
 /*
 SUBMIT BUTTON
-*/ 
+*/
 const submitButton = document.getElementById('submit-drawing');
 submitButton.addEventListener('click', function () {
   if (drawnPolygons.length === 0) {
@@ -473,7 +463,7 @@ submitButton.addEventListener('click', function () {
 
       const saveLocalStorageToDatabase = JSON.parse(localStorage.getItem('polygon-features'));
       console.log('local storage', saveLocalStorageToDatabase);
-      
+
       // NEED TO COMPLETE - save to database then clear local storage
     }
   }
@@ -481,7 +471,7 @@ submitButton.addEventListener('click', function () {
 
 /*
 CLEAR ALL BUTTON
-*/ 
+*/
 const clear = document.getElementById('clear');
 clear.addEventListener('click', function () {
   if (window.confirm("Are you sure you want to delete your drawing(s)?")) {
@@ -494,7 +484,7 @@ clear.addEventListener('click', function () {
 
 /*
 LOAD DRAFT BUTTON
-*/ 
+*/
 const postmanServerUrlGet = "https://37e794d2-e93e-49c9-876f-6abcac26fbd3.mock.pstmn.io/database";
 
 const loadDraft = document.getElementById('load-draft');
@@ -543,7 +533,7 @@ saveDraftButton.addEventListener('click', function () {
 
       const saveDraftToLocalStorageToDatabase = JSON.parse(localStorage.getItem('polygon-features'));
       console.log('local storage save draft', saveDraftToLocalStorageToDatabase);
-      
+
       // NEED TO COMPLETE - save to database then clear local storage
     }
   }
