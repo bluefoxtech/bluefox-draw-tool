@@ -110,6 +110,14 @@ const ModifyPolygon = {
 
     // event listener that is fired when you've modified a feature
     this.modify.on('modifyend', function (e) {
+      // update the area of polygon in feature's properties.
+      const modifiedFeatures = e.features.array_;
+      modifiedFeatures.forEach(feature => {
+        const modifiedGeom = feature.values_.geometry;
+        let modifiedOutput = formatArea(modifiedGeom)
+        feature.set('polygon-area', modifiedOutput)
+      });
+
       const modifyFeatureCoords = format.writeFeatures(e.features.array_);
       const modifyFeatureCoordsToObject = JSON.parse(modifyFeatureCoords);
       const drawnPolygonsFeatures = drawnPolygons[0].features;
@@ -297,7 +305,7 @@ const formatArea = function (polygon) {
 
 /**
  * style function
- **/ 
+ **/
 function stylePolygon(feature) {
   return [
     new Style({
@@ -379,9 +387,18 @@ if (localStorage.getItem('polygon-features') === null) {
   // polygons drawn after browser closed/refreshed
   drawingSource.on('change', function () {
     const features = drawingSource.getFeatures();
-    let json = format.writeFeatures(features);
 
+    // loop through features to add polygon area to feature's properties
+    features.forEach(feature => {
+      const geom = feature.values_.geometry;
+      let output = formatArea(geom)
+      feature.set('polygon-area', output)
+    })
+
+    // set the style of the drawing layer 
+    drawingLayer.setStyle(stylePolygon)
     //  convert json to object
+    const json = format.writeFeatures(features);
     const jsonToObject = JSON.parse(json);
 
     // extract "features" object
@@ -415,7 +432,7 @@ function retrieveFeaturesFromLocalStorage() {
   // push local storage to drawn polygons array
   drawnPolygons.push(convertLocalStorageToObject);
 
-  // if you've refreshed and drawn addition features, then retrieve old features from Local Storage 
+  // if you've refreshed and drawn additional features, then retrieve old features from Local Storage 
   if (localStorage.getItem('new-polygon-features') !== null) {
     const retrieveLocalStorageNewPolygons = localStorage.getItem('new-polygon-features');
     const convertNewPolygonsToObject = JSON.parse(retrieveLocalStorageNewPolygons);
@@ -437,13 +454,15 @@ function retrieveFeaturesFromLocalStorage() {
   // change the saved polygons source to features in local storage
   savedPolygonsLayer.getSource().addFeatures(format.readFeatures(convertLocalStorageToObject));
 
+  // set the style of the drawing layer 
+  savedPolygonsLayer.setStyle(stylePolygon)
+
   // takes object out of drawnPolygons array 
   const drawnPolygonsFromArrayToObject = drawnPolygons.pop();
 
   // pushes the object back into the drawnPolygons array
   drawnPolygons.push(drawnPolygonsFromArrayToObject);
 }
-
 
 /*
 SUBMIT BUTTON
