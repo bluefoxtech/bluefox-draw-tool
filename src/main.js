@@ -67,28 +67,12 @@ const drawingSource = new VectorSource();
 
 const drawingLayer = new VectorLayer({
   source: drawingSource,
-  // style: new Style({
-  //   stroke: new Stroke({
-  //     color: 'red'
-  //   }),
-  //   fill: new Fill({
-  //     color: 'rgba(255, 255, 255, 0.3)'
-  //   })
-  // })
 });
 
 // add saved polygons from local storage as a map layer. Change vector source dynamically
 const savedPolygonsSource = new VectorSource();
 const savedPolygonsLayer = new VectorLayer({
   source: savedPolygonsSource,
-  // style: new Style({
-  //   stroke: new Stroke({
-  //     color: 'red'
-  //   }),
-  //   fill: new Fill({
-  //     color: 'rgba(255, 255, 255, 0.3)'
-  //   })
-  // })
 });
 
 // add additional layers to map layers to Map
