@@ -83,11 +83,12 @@ map.addLayer(savedPolygonsLayer);
 // modify polygon interaction
 const ModifyPolygon = {
   init: function () {
-    this.select = new Select();
+    this.select = new Select({
+    });
     map.addInteraction(this.select);
 
     this.modify = new Modify({
-      features: this.select.getFeatures()
+      features: this.select.getFeatures(),
     });
 
     map.addInteraction(this.modify);
@@ -113,12 +114,17 @@ const ModifyPolygon = {
         }
       }
 
+      // removes the modifypolygon interaction after modifying > see the area in hectares 
+      ModifyPolygon.setActive(false);
+
+      // adds the interaction ready if you further changes are needed
+      ModifyPolygon.setActive(true);
+
       // store changes in local storage
       const modifiedFeaturesToString = JSON.stringify(drawnPolygons[0]);
       localStorage.setItem('polygon-features', modifiedFeaturesToString);
     });
 
-    const getmodify = this.modify;
     this.setEvents();
   },
   setEvents: function () {
@@ -509,7 +515,6 @@ loadDraft.addEventListener('click', (e) => {
       return response.text();
     })
     .then(data => {
-      console.log(data)
       let output = data;
       localStorage.setItem('polygon-features', output);
       setTimeout(() => location.reload(), 500);
@@ -541,7 +546,3 @@ saveDraftButton.addEventListener('click', function () {
     }
   }
 });
-
-/*
-Measuring function
-*/
