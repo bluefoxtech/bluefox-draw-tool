@@ -23,7 +23,9 @@ const attribution = new Attribution({
   collapsible: false,
 });
 
-// Map
+/**
+ * MAP & LAYERS
+ * */ 
 const map = new Map({
   target: 'map-container',
   layers: [
@@ -80,7 +82,21 @@ map.addLayer(mapLayer);
 map.addLayer(drawingLayer);
 map.addLayer(savedPolygonsLayer);
 
-// modify polygon interaction
+// drawn features snaps to map data
+const snap = new Snap({
+  source: mapSource
+})
+map.addInteraction(snap);
+
+sync(map);
+
+// format of map
+const format = new GeoJSON({ featureProjection: 'EPSG:3857' });
+
+/**
+ * TOGGLE DRAW MODE
+ **/
+//modify polygon interaction
 const ModifyPolygon = {
   init: function () {
     this.select = new Select({
@@ -271,17 +287,6 @@ optionsForm.onchange = function (e) {
 DrawPolygon.setActive(true);
 ModifyPolygon.setActive(false);
 DeletePolygon.setActive(false);
-
-// drawn features snaps to map data
-const snap = new Snap({
-  source: mapSource
-})
-map.addInteraction(snap);
-
-sync(map);
-
-// format of map
-const format = new GeoJSON({ featureProjection: 'EPSG:3857' });
 
 /**
  * function to format area of polygon and convert to hectares
