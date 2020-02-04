@@ -82,14 +82,6 @@ map.addLayer(mapLayer);
 map.addLayer(drawingLayer);
 map.addLayer(savedPolygonsLayer);
 
-// drawn features snaps to map data
-const snap = new Snap({
-  source: mapSource
-})
-map.addInteraction(snap);
-
-sync(map);
-
 // format of map
 const format = new GeoJSON({ featureProjection: 'EPSG:3857' });
 
@@ -288,13 +280,21 @@ DrawPolygon.setActive(true);
 ModifyPolygon.setActive(false);
 DeletePolygon.setActive(false);
 
+// drawn features snaps to map data
+const snap = new Snap({
+  source: mapSource
+})
+map.addInteraction(snap);
+
+sync(map);
+
 /**
  * function to format area of polygon and convert to hectares
  */
 const formatArea = function (polygon) {
   const area = getArea(polygon);
   let output = area / 10000
-  output = 'Area = ' + (Math.round(output * 1000) / 1000) + ' ' + 'ha';
+  output = 'Area = ' + (Math.round(output * 1000) / 1000) + ' ' + '\n' + 'hectares';
   return output;
 };
 
