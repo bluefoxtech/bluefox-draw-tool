@@ -30,7 +30,7 @@ const map = new Map({
     new VectorLayer({
       source: new VectorSource({
         format: new GeoJSON(),
-        url: '/src/data/line.geojson',
+        url: './src/data/line.geojson',
         attributions: '© Crown copyright and database rights 2020 OS 100038864'
       })
     })
@@ -289,7 +289,7 @@ const format = new GeoJSON({ featureProjection: 'EPSG:3857' });
 const formatArea = function (polygon) {
   const area = getArea(polygon);
   let output = area / 10000
-  output = (Math.round(output * 1000) / 1000) + ' ' + 'ha';
+  output = 'Area = ' + (Math.round(output * 1000) / 1000) + ' ' + 'ha';
   return output;
 };
 
@@ -306,13 +306,17 @@ function stylePolygon(feature) {
         color: 'rgba(255, 255, 255, 0.5)'
       }),
       text: new Text({
-        font: 'bold 12px Arial, san-serif',
+        font: 'bold 14px Arial, san-serif',
+        textBaseline: 'center',
+        backgroundFill: new Fill({
+          color: '#535353'
+        }),
         fill: new Fill({
-          color: 'black'
+          color: 'white'
         }),
         // add polygon area as text
         text: feature.get('polygon-area'),
-        textAlign: 'center'
+        padding: [3,2,2,2]
       })
     })
   ]
