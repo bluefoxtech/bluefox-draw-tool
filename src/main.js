@@ -9,9 +9,11 @@ import Modify from 'ol/interaction/Modify';
 import Draw from 'ol/interaction/Draw';
 import Snap from 'ol/interaction/Snap';
 import Select from 'ol/interaction/Select';
-import { Fill, Stroke, Style } from 'ol/style';
+import { Fill, Stroke, Style, Text } from 'ol/style';
 import { fromLonLat } from 'ol/proj';
 import { defaults as defaultControls, Attribution } from 'ol/control';
+import { getArea, getLength } from 'ol/sphere';
+import Overlay from 'ol/Overlay';
 import "./main.css";
 
 // Global variables
@@ -21,14 +23,16 @@ const attribution = new Attribution({
   collapsible: false,
 });
 
-// Map
+/**
+ * MAP & LAYERS
+ * */ 
 const map = new Map({
   target: 'map-container',
   layers: [
     new VectorLayer({
       source: new VectorSource({
         format: new GeoJSON(),
-        url: '/src/data/line.geojson',
+        url: './src/data/line.geojson',
         attributions: '© Crown copyright and database rights 2020 OS 100038864'
       })
     })
@@ -65,28 +69,12 @@ const drawingSource = new VectorSource();
 
 const drawingLayer = new VectorLayer({
   source: drawingSource,
-  style: new Style({
-    stroke: new Stroke({
-      color: 'red'
-    }),
-    fill: new Fill({
-      color: 'rgba(255, 255, 255, 0.3)'
-    })
-  })
 });
 
 // add saved polygons from local storage as a map layer. Change vector source dynamically
 const savedPolygonsSource = new VectorSource();
 const savedPolygonsLayer = new VectorLayer({
   source: savedPolygonsSource,
-  style: new Style({
-    stroke: new Stroke({
-      color: 'red'
-    }),
-    fill: new Fill({
-      color: 'rgba(255, 255, 255, 0.3)'
-    })
-  })
 });
 
 // add additional layers to map layers to Map
@@ -94,20 +82,35 @@ map.addLayer(mapLayer);
 map.addLayer(drawingLayer);
 map.addLayer(savedPolygonsLayer);
 
-// modify polygon interaction
+// format of map
+const format = new GeoJSON({ featureProjection: 'EPSG:3857' });
+
+/**
+ * TOGGLE DRAW MODE
+ **/
+//modify polygon interaction
 const ModifyPolygon = {
   init: function () {
-    this.select = new Select();
+    this.select = new Select({
+    });
     map.addInteraction(this.select);
 
     this.modify = new Modify({
-      features: this.select.getFeatures()
+      features: this.select.getFeatures(),
     });
 
     map.addInteraction(this.modify);
 
     // event listener that is fired when you've modified a feature
     this.modify.on('modifyend', function (e) {
+      // update the area of polygon in feature's properties.
+      const modifiedFeatures = e.features.array_;
+      modifiedFeatures.forEach(feature => {
+        const modifiedGeom = feature.values_.geometry;
+        let modifiedOutput = formatArea(modifiedGeom)
+        feature.set('polygon-area', modifiedOutput)
+      });
+
       const modifyFeatureCoords = format.writeFeatures(e.features.array_);
       const modifyFeatureCoordsToObject = JSON.parse(modifyFeatureCoords);
       const drawnPolygonsFeatures = drawnPolygons[0].features;
@@ -119,12 +122,17 @@ const ModifyPolygon = {
         }
       }
 
+      // removes the modifypolygon interaction after modifying > see the area in hectares 
+      ModifyPolygon.setActive(false);
+
+      // adds the interaction ready if you further changes are needed
+      ModifyPolygon.setActive(true);
+
       // store changes in local storage
       const modifiedFeaturesToString = JSON.stringify(drawnPolygons[0]);
       localStorage.setItem('polygon-features', modifiedFeaturesToString);
     });
 
-    const getmodify = this.modify;
     this.setEvents();
   },
   setEvents: function () {
@@ -229,8 +237,6 @@ const DeletePolygon = {
       }
       setTimeout(checkDelete, 500);
     });
-
-
   },
   setEvents: function () {
     const selectedDeleteFeatures = this.deleteSelect.getFeatures();
@@ -282,8 +288,44 @@ map.addInteraction(snap);
 
 sync(map);
 
-// format of map
-const format = new GeoJSON({ featureProjection: 'EPSG:3857' });
+/**
+ * function to format area of polygon and convert to hectares
+ */
+const formatArea = function (polygon) {
+  const area = getArea(polygon);
+  let output = area / 10000
+  output = 'Area = ' + (Math.round(output * 1000) / 1000) + ' ' + '\n' + 'hectares';
+  return output;
+};
+
+/**
+ * style function
+ **/
+function stylePolygon(feature) {
+  return [
+    new Style({
+      stroke: new Stroke({
+        color: 'red'
+      }),
+      fill: new Fill({
+        color: 'rgba(255, 255, 255, 0.5)'
+      }),
+      text: new Text({
+        font: 'bold 14px Arial, san-serif',
+        textBaseline: 'center',
+        backgroundFill: new Fill({
+          color: '#535353'
+        }),
+        fill: new Fill({
+          color: 'white'
+        }),
+        // add polygon area as text
+        text: feature.get('polygon-area'),
+        padding: [3,2,2,2]
+      })
+    })
+  ]
+}
 
 /*
 SAVE FEATURE TO LOCALSTORAGE
@@ -294,13 +336,21 @@ Polygons will persist if user closes/refreshes/opens new tab in browser
 if (localStorage.getItem('polygon-features') === null) {
   // if there's nothing stored in localStorage and the drawnPolygons array is empty
   if (drawnPolygons.length === 0) {
-    drawingSource.on('change', function () {
+    drawingSource.on('change', function (evt) {
       const features = drawingSource.getFeatures();
-      const jsonFeatures = format.writeFeatures(features);
 
-      console.log('JSON', features);
+      // loop through features to add polygon area to feature's properties
+      features.forEach(feature => {
+        const geom = feature.values_.geometry;
+        let output = formatArea(geom)
+        feature.set('polygon-area', output)
+      })
+
+      // set the style of the drawing layer 
+      drawingLayer.setStyle(stylePolygon)
 
       // convert json to object and add polygon-id
+      const jsonFeatures = format.writeFeatures(features);
       const jsonFeaturesToObject = JSON.parse(jsonFeatures);
       const polygonFeatures = jsonFeaturesToObject.features;
 
@@ -337,9 +387,18 @@ if (localStorage.getItem('polygon-features') === null) {
   // polygons drawn after browser closed/refreshed
   drawingSource.on('change', function () {
     const features = drawingSource.getFeatures();
-    let json = format.writeFeatures(features);
 
+    // loop through features to add polygon area to feature's properties
+    features.forEach(feature => {
+      const geom = feature.values_.geometry;
+      let output = formatArea(geom)
+      feature.set('polygon-area', output)
+    })
+
+    // set the style of the drawing layer 
+    drawingLayer.setStyle(stylePolygon)
     //  convert json to object
+    const json = format.writeFeatures(features);
     const jsonToObject = JSON.parse(json);
 
     // extract "features" object
@@ -363,7 +422,7 @@ if (localStorage.getItem('polygon-features') === null) {
 
 /*
 function to retrieve features from local storage
-*/ 
+*/
 function retrieveFeaturesFromLocalStorage() {
   // If there are features stored in Local Storage('polygon-features') then
   // retrieve polygon coords from local storage, convert to object
@@ -373,7 +432,7 @@ function retrieveFeaturesFromLocalStorage() {
   // push local storage to drawn polygons array
   drawnPolygons.push(convertLocalStorageToObject);
 
-  // if you've refreshed and drawn addition features, then retrieve old features from Local Storage 
+  // if you've refreshed and drawn additional features, then retrieve old features from Local Storage 
   if (localStorage.getItem('new-polygon-features') !== null) {
     const retrieveLocalStorageNewPolygons = localStorage.getItem('new-polygon-features');
     const convertNewPolygonsToObject = JSON.parse(retrieveLocalStorageNewPolygons);
@@ -395,6 +454,9 @@ function retrieveFeaturesFromLocalStorage() {
   // change the saved polygons source to features in local storage
   savedPolygonsLayer.getSource().addFeatures(format.readFeatures(convertLocalStorageToObject));
 
+  // set the style of the drawing layer 
+  savedPolygonsLayer.setStyle(stylePolygon)
+
   // takes object out of drawnPolygons array 
   const drawnPolygonsFromArrayToObject = drawnPolygons.pop();
 
@@ -404,7 +466,7 @@ function retrieveFeaturesFromLocalStorage() {
 
 /*
 SUBMIT BUTTON
-*/ 
+*/
 const submitButton = document.getElementById('submit-drawing');
 submitButton.addEventListener('click', function () {
   if (drawnPolygons.length === 0) {
@@ -419,7 +481,7 @@ submitButton.addEventListener('click', function () {
 
       const saveLocalStorageToDatabase = JSON.parse(localStorage.getItem('polygon-features'));
       console.log('local storage', saveLocalStorageToDatabase);
-      
+
       // NEED TO COMPLETE - save to database then clear local storage
     }
   }
@@ -427,7 +489,7 @@ submitButton.addEventListener('click', function () {
 
 /*
 CLEAR ALL BUTTON
-*/ 
+*/
 const clear = document.getElementById('clear');
 clear.addEventListener('click', function () {
   if (window.confirm("Are you sure you want to delete your drawing(s)?")) {
@@ -440,7 +502,7 @@ clear.addEventListener('click', function () {
 
 /*
 LOAD DRAFT BUTTON
-*/ 
+*/
 const postmanServerUrlGet = "https://37e794d2-e93e-49c9-876f-6abcac26fbd3.mock.pstmn.io/database";
 
 const loadDraft = document.getElementById('load-draft');
@@ -462,7 +524,6 @@ loadDraft.addEventListener('click', (e) => {
       return response.text();
     })
     .then(data => {
-      console.log(data)
       let output = data;
       localStorage.setItem('polygon-features', output);
       setTimeout(() => location.reload(), 500);
@@ -489,7 +550,7 @@ saveDraftButton.addEventListener('click', function () {
 
       const saveDraftToLocalStorageToDatabase = JSON.parse(localStorage.getItem('polygon-features'));
       console.log('local storage save draft', saveDraftToLocalStorageToDatabase);
-      
+
       // NEED TO COMPLETE - save to database then clear local storage
     }
   }
