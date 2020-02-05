@@ -114,9 +114,10 @@ const ModifyPolygon = {
       const modifyFeatureCoords = format.writeFeatures(e.features.array_);
       const modifyFeatureCoordsToObject = JSON.parse(modifyFeatureCoords);
       const drawnPolygonsFeatures = drawnPolygons[0].features;
+
       // loop through polygons in local storage by ID and replace old features with modified features
       for (let i = 0; i < drawnPolygonsFeatures.length; i++) {
-        if (drawnPolygonsFeatures[i].id === modifyFeatureCoordsToObject.features[0].id) {
+        if (drawnPolygonsFeatures[i].properties['polygon-id'] === modifyFeatureCoordsToObject.features[0].properties['polygon-id']) {
           drawnPolygonsFeatures[i] = modifyFeatureCoordsToObject.features[0];
           break;
         }
@@ -125,7 +126,7 @@ const ModifyPolygon = {
       // removes the modifypolygon interaction after modifying > see the area in hectares 
       ModifyPolygon.setActive(false);
 
-      // adds the interaction ready if you further changes are needed
+      // adds the interaction ready if further changes are needed
       ModifyPolygon.setActive(true);
 
       // store changes in local storage
@@ -362,18 +363,6 @@ if (localStorage.getItem('polygon-features') === null) {
         feature.set('polygon-id', id)
       });
 
-      console.log('FEATURES', features);
-
-      // const ids = [];
-      // for (let i = 0; i < features.length; i++) {
-      //   ids.push(features[i].ol_uid);
-      //   for (let j = 0; j < ids.length; j++) {
-      //     polygonFeatures[j]['id'] = parseInt(ids[j]);
-      //   }
-      // }
-
-
-
       // removes item from drawnPolygons array before pushing in modified feature
       if (drawnPolygons.length > 0) {
         drawnPolygons.pop();
@@ -407,27 +396,21 @@ if (localStorage.getItem('polygon-features') === null) {
     })
 
     // set the style of the drawing layer 
-    drawingLayer.setStyle(stylePolygon)
+    drawingLayer.setStyle(stylePolygon);
+
     //  convert json to object
     const json = format.writeFeatures(features);
-    const jsonToObject = JSON.parse(json);
-
-    // extract "features" object
-    const featuresObject = jsonToObject["features"];
 
     // add id to features object for each polygon
-    const ids = [];
 
-    for (let i = 0; i < features.length; i++) {
-      ids.push(features[i].ol_uid);
-      for (let j = 0; j < ids.length; j++) {
-        featuresObject[j]['id'] = parseInt(ids[j]);
-      }
-    }
+    features.forEach(feature => {
+      const id = feature.ol_uid;
+      console.log(id);
+      feature.set('polygon-id', id)
+    });
 
     // store in local storage
-    const newPolygonsObjectToString = JSON.stringify(jsonToObject);
-    localStorage.setItem('new-polygon-features', newPolygonsObjectToString);
+    localStorage.setItem('new-polygon-features', json);
   });
 }
 
