@@ -359,7 +359,6 @@ if (localStorage.getItem('polygon-features') === null) {
 
       features.forEach(feature => {
         const id = feature.ol_uid;
-        console.log(id);
         feature.set('polygon-id', id)
       });
 
@@ -405,7 +404,6 @@ if (localStorage.getItem('polygon-features') === null) {
 
     features.forEach(feature => {
       const id = feature.ol_uid;
-      console.log(id);
       feature.set('polygon-id', id)
     });
 
