@@ -91,15 +91,15 @@ const format = new GeoJSON({ featureProjection: 'EPSG:3857' });
  **/
 //modify polygon interaction
 const ModifyPolygon = {
-  init: function () {
+  init: function (e) {
     this.select = new Select({
+      style: selectedPolygonStyles
     })
     map.addInteraction(this.select);
 
     this.modify = new Modify({
       features: this.select.getFeatures(),
     });
-
     map.addInteraction(this.modify);
 
     // event listener that is fired when you've modified a feature
@@ -369,6 +369,50 @@ function modifyPolygonStyles(feature) {
         radius: 5,
         fill: new Fill({
           color: 'orange'
+        })
+      }),
+      geometry: function(feature) {
+        // return the coordinates of the first ring of the polygon
+        var coordinates = feature.getGeometry().getCoordinates()[0];
+        return new MultiPoint(coordinates);
+      }
+    })
+  ]
+}
+
+/**
+ * Select-modify style function
+ **/
+
+function selectedPolygonStyles(feature) {
+  return [
+    new Style({
+      stroke: new Stroke({
+        color: 'blue',
+        width: 3,
+        lineDash: [5, 5]
+      }),
+      fill: new Fill({
+        color: 'rgba(255, 255, 255, 0.5)'
+      }),
+      text: new Text({
+        font: 'bold 14px Arial, san-serif',
+        textBaseline: 'center',
+        backgroundFill: new Fill({
+          color: '#535353'
+        }),
+        fill: new Fill({
+          color: 'white'
+        }),
+        text: feature.get('polygon-area'),
+        padding: [3,2,2,2]
+      })
+    }),
+    new Style({
+      image: new CircleStyle({
+        radius: 5,
+        fill: new Fill({
+          color: 'red'
         })
       }),
       geometry: function(feature) {
