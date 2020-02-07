@@ -129,6 +129,7 @@ const ModifyPolygon = {
 
       // adds the interaction ready if further changes are needed
       ModifyPolygon.setActive(true);
+      drawingLayer.setStyle(modifyPolygonStyles);
 
       // store changes in local storage
       const modifiedFeaturesToString = JSON.stringify(drawnPolygons[0]);
@@ -267,14 +268,19 @@ optionsForm.onchange = function (e) {
       ModifyPolygon.setActive(true);
       DeletePolygon.setActive(false);
       savedPolygonsLayer.setStyle(modifyPolygonStyles);
+      drawingLayer.setStyle(modifyPolygonStyles);
     } else if (value == 'draw') {
       DrawPolygon.setActive(true);
       ModifyPolygon.setActive(false);
       DeletePolygon.setActive(false);
+      savedPolygonsLayer.setStyle(stylePolygon);
+      drawingLayer.setStyle(stylePolygon);
     } else if (value == 'delete') {
       DeletePolygon.setActive(true);
       DrawPolygon.setActive(false);
       ModifyPolygon.setActive(false);
+      savedPolygonsLayer.setStyle(stylePolygon);
+      drawingLayer.setStyle(stylePolygon);
     }
   }
 };
