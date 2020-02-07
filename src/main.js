@@ -9,11 +9,12 @@ import Modify from 'ol/interaction/Modify';
 import Draw from 'ol/interaction/Draw';
 import Snap from 'ol/interaction/Snap';
 import Select from 'ol/interaction/Select';
-import { Fill, Stroke, Style, Text } from 'ol/style';
+import { Circle as CircleStyle, Fill, Stroke, Style, Text } from 'ol/style';
 import { fromLonLat } from 'ol/proj';
 import { defaults as defaultControls, Attribution } from 'ol/control';
 import { getArea, getLength } from 'ol/sphere';
 import Overlay from 'ol/Overlay';
+import MultiPoint from 'ol/geom/MultiPoint';
 import "./main.css";
 
 // Global variables
@@ -92,7 +93,7 @@ const format = new GeoJSON({ featureProjection: 'EPSG:3857' });
 const ModifyPolygon = {
   init: function () {
     this.select = new Select({
-    });
+    })
     map.addInteraction(this.select);
 
     this.modify = new Modify({
@@ -265,6 +266,7 @@ optionsForm.onchange = function (e) {
       DrawPolygon.setActive(false);
       ModifyPolygon.setActive(true);
       DeletePolygon.setActive(false);
+      savedPolygonsLayer.setStyle(modifyPolygonStyles);
     } else if (value == 'draw') {
       DrawPolygon.setActive(true);
       ModifyPolygon.setActive(false);
@@ -300,7 +302,7 @@ const formatArea = function (polygon) {
 };
 
 /**
- * style function
+ * Default style function
  **/
 function stylePolygon(feature) {
   return [
@@ -324,6 +326,50 @@ function stylePolygon(feature) {
         text: feature.get('polygon-area'),
         padding: [3,2,2,2]
       })
+    })
+  ]
+}
+
+/**
+ * Modify style function
+ **/
+
+function modifyPolygonStyles(feature) {
+  return [
+    new Style({
+      stroke: new Stroke({
+        color: 'blue',
+        width: 3
+      }),
+      fill: new Fill({
+        color: 'rgba(255, 255, 255, 0.5)'
+      }),
+      text: new Text({
+        font: 'bold 14px Arial, san-serif',
+        textBaseline: 'center',
+        backgroundFill: new Fill({
+          color: '#535353'
+        }),
+        fill: new Fill({
+          color: 'white'
+        }),
+        // add polygon area as text
+        text: feature.get('polygon-area'),
+        padding: [3,2,2,2]
+      })
+    }),
+    new Style({
+      image: new CircleStyle({
+        radius: 5,
+        fill: new Fill({
+          color: 'orange'
+        })
+      }),
+      geometry: function(feature) {
+        // return the coordinates of the first ring of the polygon
+        var coordinates = feature.getGeometry().getCoordinates()[0];
+        return new MultiPoint(coordinates);
+      }
     })
   ]
 }
