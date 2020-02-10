@@ -9,11 +9,12 @@ import Modify from 'ol/interaction/Modify';
 import Draw from 'ol/interaction/Draw';
 import Snap from 'ol/interaction/Snap';
 import Select from 'ol/interaction/Select';
-import { Fill, Stroke, Style, Text } from 'ol/style';
+import { Circle as CircleStyle, Fill, Stroke, Style, Text } from 'ol/style';
 import { fromLonLat } from 'ol/proj';
 import { defaults as defaultControls, Attribution } from 'ol/control';
 import { getArea, getLength } from 'ol/sphere';
 import Overlay from 'ol/Overlay';
+import MultiPoint from 'ol/geom/MultiPoint';
 import "./main.css";
 
 // Global variables
@@ -90,15 +91,15 @@ const format = new GeoJSON({ featureProjection: 'EPSG:3857' });
  **/
 //modify polygon interaction
 const ModifyPolygon = {
-  init: function () {
+  init: function (e) {
     this.select = new Select({
-    });
+      style: selectedPolygonStyles
+    })
     map.addInteraction(this.select);
 
     this.modify = new Modify({
       features: this.select.getFeatures(),
     });
-
     map.addInteraction(this.modify);
 
     // event listener that is fired when you've modified a feature
@@ -128,6 +129,7 @@ const ModifyPolygon = {
 
       // adds the interaction ready if further changes are needed
       ModifyPolygon.setActive(true);
+      drawingLayer.setStyle(modifyPolygonStyles);
 
       // store changes in local storage
       const modifiedFeaturesToString = JSON.stringify(drawnPolygons[0]);
@@ -265,14 +267,20 @@ optionsForm.onchange = function (e) {
       DrawPolygon.setActive(false);
       ModifyPolygon.setActive(true);
       DeletePolygon.setActive(false);
+      savedPolygonsLayer.setStyle(modifyPolygonStyles);
+      drawingLayer.setStyle(modifyPolygonStyles);
     } else if (value == 'draw') {
       DrawPolygon.setActive(true);
       ModifyPolygon.setActive(false);
       DeletePolygon.setActive(false);
+      savedPolygonsLayer.setStyle(stylePolygon);
+      drawingLayer.setStyle(stylePolygon);
     } else if (value == 'delete') {
       DeletePolygon.setActive(true);
       DrawPolygon.setActive(false);
       ModifyPolygon.setActive(false);
+      savedPolygonsLayer.setStyle(stylePolygon);
+      drawingLayer.setStyle(stylePolygon);
     }
   }
 };
@@ -300,7 +308,7 @@ const formatArea = function (polygon) {
 };
 
 /**
- * style function
+ * Default style function
  **/
 function stylePolygon(feature) {
   return [
@@ -328,6 +336,98 @@ function stylePolygon(feature) {
   ]
 }
 
+/**
+ * Modify style function
+ **/
+
+function modifyPolygonStyles(feature) {
+  return [
+    new Style({
+      stroke: new Stroke({
+        color: 'blue',
+        width: 3
+      }),
+      fill: new Fill({
+        color: 'rgba(255, 255, 255, 0.5)'
+      }),
+      text: new Text({
+        font: 'bold 14px Arial, san-serif',
+        textBaseline: 'center',
+        backgroundFill: new Fill({
+          color: '#535353'
+        }),
+        fill: new Fill({
+          color: 'white'
+        }),
+        // add polygon area as text
+        text: feature.get('polygon-area'),
+        padding: [3,2,2,2]
+      })
+    }),
+    new Style({
+      image: new CircleStyle({
+        radius: 5,
+        fill: new Fill({
+          color: 'orange'
+        })
+      }),
+      geometry: function(feature) {
+        // return the coordinates of the first ring of the polygon
+        var coordinates = feature.getGeometry().getCoordinates()[0];
+        return new MultiPoint(coordinates);
+      }
+    })
+  ]
+}
+
+/**
+ * Select-modify style function
+ **/
+
+function selectedPolygonStyles(feature) {
+  return [
+    new Style({
+      stroke: new Stroke({
+        color: 'blue',
+        width: 3,
+        lineDash: [5, 5]
+      }),
+      fill: new Fill({
+        color: 'rgba(255, 255, 255, 0.5)'
+      }),
+      text: new Text({
+        font: 'bold 14px Arial, san-serif',
+        textBaseline: 'center',
+        backgroundFill: new Fill({
+          color: '#535353'
+        }),
+        fill: new Fill({
+          color: 'white'
+        }),
+        text: feature.get('polygon-area'),
+        padding: [3,2,2,2]
+      })
+    }),
+    new Style({
+      image: new CircleStyle({
+        radius: 5,
+        fill: new Fill({
+          color: 'red'
+        })
+      }),
+      geometry: function(feature) {
+        // return the coordinates of the first ring of the polygon
+        var coordinates = feature.getGeometry().getCoordinates()[0];
+        return new MultiPoint(coordinates);
+      }
+    })
+  ]
+}
+
+
+// set the style of the drawing layer 
+drawingLayer.setStyle(stylePolygon);
+      
 /*
 SAVE FEATURE TO LOCALSTORAGE
 Polygons will persist if user closes/refreshes/opens new tab in browser
@@ -337,7 +437,7 @@ Polygons will persist if user closes/refreshes/opens new tab in browser
 if (localStorage.getItem('polygon-features') === null) {
   // if there's nothing stored in localStorage and the drawnPolygons array is empty
   if (drawnPolygons.length === 0) {
-    drawingSource.on('change', function (evt) {
+    drawingSource.on('change', function () {
       const features = drawingSource.getFeatures();
 
       // loop through features to add polygon area to feature's properties
@@ -346,9 +446,6 @@ if (localStorage.getItem('polygon-features') === null) {
         let output = formatArea(geom)
         feature.set('polygon-area', output)
       })
-
-      // set the style of the drawing layer 
-      drawingLayer.setStyle(stylePolygon)
 
       // convert json to object and add polygon-id
       const jsonFeatures = format.writeFeatures(features);
