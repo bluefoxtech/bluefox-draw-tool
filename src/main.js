@@ -424,6 +424,10 @@ function selectedPolygonStyles(feature) {
   ]
 }
 
+
+// set the style of the drawing layer 
+drawingLayer.setStyle(stylePolygon);
+      
 /*
 SAVE FEATURE TO LOCALSTORAGE
 Polygons will persist if user closes/refreshes/opens new tab in browser
@@ -433,7 +437,7 @@ Polygons will persist if user closes/refreshes/opens new tab in browser
 if (localStorage.getItem('polygon-features') === null) {
   // if there's nothing stored in localStorage and the drawnPolygons array is empty
   if (drawnPolygons.length === 0) {
-    drawingSource.on('change', function (evt) {
+    drawingSource.on('change', function () {
       const features = drawingSource.getFeatures();
 
       // loop through features to add polygon area to feature's properties
@@ -442,9 +446,6 @@ if (localStorage.getItem('polygon-features') === null) {
         let output = formatArea(geom)
         feature.set('polygon-area', output)
       })
-
-      // set the style of the drawing layer 
-      drawingLayer.setStyle(stylePolygon)
 
       // convert json to object and add polygon-id
       const jsonFeatures = format.writeFeatures(features);
