@@ -58,3 +58,13 @@ button:active {
   border-bottom: solid 2px  rgba(33, 68, 132, 1.0);
   box-shadow: 0 0 2px rgba(0, 0, 0, 0.30);
 }
+
+#draw-type {
+  background-color:whitesmoke;
+  padding: 0.1em 0.3em;
+  border-radius: 3px;
+}
+
+.form-group {
+  padding-left: 25px;
+}
