@@ -93,7 +93,8 @@ const format = new GeoJSON({ featureProjection: "EPSG:3857" });
 const ModifyPolygon = {
   init: function(e) {
     this.select = new Select({
-      style: selectedPolygonStyles
+      style: selectedPolygonStyles,
+      layers: [drawingLayer, savedPolygonsLayer]
     });
     map.addInteraction(this.select);
 
@@ -190,6 +191,7 @@ DrawPolygon.init();
 const DeletePolygon = {
   init: function() {
     this.deleteSelect = new Select({
+      layers: [drawingLayer, savedPolygonsLayer],
       style: new Style({
         stroke: new Stroke({
           color: "#F89911",
