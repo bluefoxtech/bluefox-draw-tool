@@ -7,6 +7,8 @@
   <link rel="shortcut icon" href="./favicon.ico">
   <!-- for older browsers -->
   <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL"></script>
+  <!-- font awesome -->
+  <script src="https://kit.fontawesome.com/5db29bb5d1.js" crossorigin="anonymous"></script>
 </head>
 
 <body>
@@ -17,41 +19,47 @@
       <div class="radio">
         <label>
           <input type="radio" name="interaction" value="draw" id="draw" checked>
+          <i class="fas fa-pencil-ruler"></i>
           Draw &nbsp;
         </label>
         <div class="form-group">
-          <label>Draw type &nbsp;</label>
+          <label>Draw type:</label>
           <select name="draw-type" id="draw-type">
-            <option value="Polygon">Polygon</option>
+            <option value="Polygon">A Site</option>
           </select>
         </div>
       </div>
       <div class="radio">
         <label>
           <input type="radio" name="interaction" value="modify">
+          <i class="fas fa-draw-polygon"></i>
           Modify &nbsp;
         </label>
       </div>
       <div class="radio">
         <label>
           <input type="radio" name="interaction" value="delete">
+          <i class="far fa-trash-alt"></i>
           Delete &nbsp;
         </label>
       </div>
    
     </form>
-    <div>
-      <button id="clear">Clear All</button>
+    <div class="buttons-wrapper">
+      <div>
+        <button id="clear"><i class="fas fa-minus-circle"></i> Delete All</button>
+      </div>
+      <div>
+        <button id="save-draft"><i class="fab fa-firstdraft"></i> Save Draft</button>
+      </div>
+      <div>
+        <button id="load-draft"><i class="fas fa-file-download"></i> Load Draft</button>
+      </div>
+      <div>
+        <button type="reset" name="submit-drawing" id="submit-drawing"><i class="far fa-paper-plane"></i>  Submit</button>
+      </div>
     </div>
-    <div>
-      <button id="save-draft">Save Draft</button>
-    </div>
-    <div>
-      <button id="load-draft">Load Draft</button>
-    </div>
-    <form>
-      <input type="reset" name="submit-drawing" id="submit-drawing" value="Submit">
-    </form>
+ 
     
   </div>
 </body>
