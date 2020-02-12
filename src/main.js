@@ -191,6 +191,7 @@ DrawPolygon.init();
 const DeletePolygon = {
   init: function() {
     this.deleteSelect = new Select({
+      layers: [drawingLayer, savedPolygonsLayer],
       style: new Style({
         stroke: new Stroke({
           color: "#F89911",
