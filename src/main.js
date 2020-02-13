@@ -492,9 +492,6 @@ if (localStorage.getItem("polygon-features") === null) {
       feature.set("polygon-area", output);
     });
 
-    // set the style of the drawing layer
-    drawingLayer.setStyle(stylePolygon);
-
     //  convert json to object
     const json = format.writeFeatures(features);
 
