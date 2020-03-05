@@ -467,8 +467,8 @@ if (localStorage.getItem("polygon-features") === null) {
       }
       drawnPolygons.push(jsonFeaturesToObject);
 
-      // insert USER ID from JDi
-      const userId = "jdi-id-random-id";
+      // TO BE REPLACED! Insert USER ID from JDi
+      const userId = Math.floor(Math.random() * 100000);
 
       // add user id to features drawn
       drawnPolygons[0]["user_id"] = userId;
@@ -580,7 +580,7 @@ submitButton.addEventListener("click", function() {
       );
       console.log("local storage", saveLocalStorageToDatabase);
 
-      // NEED TO COMPLETE - save to database then clear local storage
+      
     }
   }
 });
