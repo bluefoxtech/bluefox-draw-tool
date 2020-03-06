@@ -574,13 +574,35 @@ submitButton.addEventListener("click", function() {
       if (localStorage.getItem("new-polygon-features") !== null) {
         retrieveFeaturesFromLocalStorage();
       }
-
+      console.log(localStorage.getItem("polygon-features"));
       const saveLocalStorageToDatabase = JSON.parse(
         localStorage.getItem("polygon-features")
       );
       console.log("local storage", saveLocalStorageToDatabase);
 
-      
+      const opusUrl = "https://dev.opus4.co.uk/api/v1/call-for-sites/";
+
+      let mapId = "1233/";
+
+      let postDatabaseUrl =
+        opusUrl + mapId + saveLocalStorageToDatabase["user_id"];
+
+      const postOptions = {
+        method: "POST",
+        mode: "cors",
+        headers: {
+          "Content-Type": "application/json"
+          // 'Access-Control-Allow-Origin':'*',
+        },
+        body: JSON.stringify({ hello: "test" })
+      };
+
+      fetch(postDatabaseUrl, postOptions)
+        .then(res => res.json())
+        .then(res => console.log(res))
+        .catch(err => {
+          console.log(err);
+        });
     }
   }
 });
