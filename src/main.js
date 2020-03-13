@@ -625,36 +625,6 @@ clear.addEventListener("click", function() {
 /*
 LOAD DRAFT BUTTON
 */
-// const postmanServerUrlGet =
-//   "https://37e794d2-e93e-49c9-876f-6abcac26fbd3.mock.pstmn.io/database";
-
-// const loadDraft = document.getElementById("load-draft");
-// loadDraft.addEventListener("click", e => {
-//   let h = new Headers();
-
-//   // request options
-//   let options = {
-//     method: "GET",
-//     headers: h,
-//     mode: "cors",
-//     cache: "default"
-//   };
-
-//   let req = new Request(postmanServerUrlGet, options);
-
-//   fetch(req)
-//     .then(response => {
-//       return response.text();
-//     })
-//     .then(data => {
-//       let output = data;
-//       localStorage.setItem("polygon-features", output);
-//       setTimeout(() => location.reload(), 500);
-//     })
-//     .catch(err => {
-//       console.log(err);
-//     });
-// });
 
 const loadDraft = document.getElementById("load-draft");
 loadDraft.addEventListener("click", e => {
