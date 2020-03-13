@@ -574,19 +574,20 @@ submitButton.addEventListener("click", function() {
       if (localStorage.getItem("new-polygon-features") !== null) {
         retrieveFeaturesFromLocalStorage();
       }
-     
-      const saveLocalStorageToDatabase = localStorage.getItem("polygon-features");
+
+      const saveLocalStorageToDatabase = localStorage.getItem(
+        "polygon-features"
+      );
 
       const getId = JSON.parse(saveLocalStorageToDatabase);
-      
-       console.log("local storage", saveLocalStorageToDatabase);
+
+      console.log("local storage", saveLocalStorageToDatabase);
 
       const opusUrl = "https://dev.opus4.co.uk/api/v1/call-for-sites/";
 
       let mapId = "1233/";
 
-      let postDatabaseUrl =
-        opusUrl + mapId + getId["user_id"];
+      let postDatabaseUrl = opusUrl + mapId + getId["user_id"];
 
       let postOptions = {
         method: "POST",
@@ -657,19 +658,22 @@ LOAD DRAFT BUTTON
 
 const loadDraft = document.getElementById("load-draft");
 loadDraft.addEventListener("click", e => {
-  let h = new Headers();
+  let headerSettings = new Headers();
 
   // request options
   let options = {
     method: "GET",
-    headers: h,
+    headers: headerSettings,
     mode: "cors",
     cache: "default"
   };
+
   let req = new Request(
-    "https://dev.opus4.co.uk/api/v1/call-for-sites/1233/0",
+    "https://dev.opus4.co.uk/api/v1/call-for-sites/1233/86355",
     options
   );
+
+  let retrievedFeaturesFromDatabase;
 
   fetch(req)
     .then(response => {
@@ -677,11 +681,17 @@ loadDraft.addEventListener("click", e => {
     })
     .then(data => {
       console.log(data);
+      retrievedFeaturesFromDatabase = Object.values(data).pop();
+      localStorage.setItem("polygon-features", retrievedFeaturesFromDatabase);
+      setTimeout(() => location.reload(), 500);
     })
     .catch(err => {
       console.log(err);
     });
+
+  console.log("retrieved data", retrievedFeaturesFromDatabase);
 });
+
 /*
 SAVE DRAFT BUTTON
 */
