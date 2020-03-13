@@ -574,32 +574,33 @@ submitButton.addEventListener("click", function() {
       if (localStorage.getItem("new-polygon-features") !== null) {
         retrieveFeaturesFromLocalStorage();
       }
-      console.log(localStorage.getItem("polygon-features"));
-      const saveLocalStorageToDatabase = JSON.parse(
-        localStorage.getItem("polygon-features")
-      );
-      console.log("local storage", saveLocalStorageToDatabase);
+     
+      const saveLocalStorageToDatabase = localStorage.getItem("polygon-features");
+
+      const getId = JSON.parse(saveLocalStorageToDatabase);
+      
+       console.log("local storage", saveLocalStorageToDatabase);
 
       const opusUrl = "https://dev.opus4.co.uk/api/v1/call-for-sites/";
 
       let mapId = "1233/";
 
       let postDatabaseUrl =
-        opusUrl + mapId + saveLocalStorageToDatabase["user_id"];
+        opusUrl + mapId + getId["user_id"];
 
-      const postOptions = {
+      let postOptions = {
         method: "POST",
-        mode: "cors",
         headers: {
-          "Content-Type": "application/json"
-          // 'Access-Control-Allow-Origin':'*',
+          "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
         },
-        body: JSON.stringify({ hello: "test" })
+        body: "features=" + saveLocalStorageToDatabase
       };
 
       fetch(postDatabaseUrl, postOptions)
-        .then(res => res.json())
-        .then(res => console.log(res))
+        .then(response => {
+          // response.json();
+          console.log(response);
+        })
         .catch(err => {
           console.log(err);
         });
@@ -623,8 +624,36 @@ clear.addEventListener("click", function() {
 /*
 LOAD DRAFT BUTTON
 */
-const postmanServerUrlGet =
-  "https://37e794d2-e93e-49c9-876f-6abcac26fbd3.mock.pstmn.io/database";
+// const postmanServerUrlGet =
+//   "https://37e794d2-e93e-49c9-876f-6abcac26fbd3.mock.pstmn.io/database";
+
+// const loadDraft = document.getElementById("load-draft");
+// loadDraft.addEventListener("click", e => {
+//   let h = new Headers();
+
+//   // request options
+//   let options = {
+//     method: "GET",
+//     headers: h,
+//     mode: "cors",
+//     cache: "default"
+//   };
+
+//   let req = new Request(postmanServerUrlGet, options);
+
+//   fetch(req)
+//     .then(response => {
+//       return response.text();
+//     })
+//     .then(data => {
+//       let output = data;
+//       localStorage.setItem("polygon-features", output);
+//       setTimeout(() => location.reload(), 500);
+//     })
+//     .catch(err => {
+//       console.log(err);
+//     });
+// });
 
 const loadDraft = document.getElementById("load-draft");
 loadDraft.addEventListener("click", e => {
@@ -637,23 +666,22 @@ loadDraft.addEventListener("click", e => {
     mode: "cors",
     cache: "default"
   };
-
-  let req = new Request(postmanServerUrlGet, options);
+  let req = new Request(
+    "https://dev.opus4.co.uk/api/v1/call-for-sites/1233/0",
+    options
+  );
 
   fetch(req)
     .then(response => {
-      return response.text();
+      return response.json();
     })
     .then(data => {
-      let output = data;
-      localStorage.setItem("polygon-features", output);
-      setTimeout(() => location.reload(), 500);
+      console.log(data);
     })
     .catch(err => {
       console.log(err);
     });
 });
-
 /*
 SAVE DRAFT BUTTON
 */
