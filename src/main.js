@@ -614,7 +614,11 @@ submitButton.addEventListener("click", function() {
           console.log(err);
         });
         localStorage.clear();
-        setTimeout(() => location.reload(), 500);
+        setTimeout(() => {          
+          location.reload();
+          alert("Thank you. Your drawing has now been submitted.");
+
+        }, 1000);
     }
   }
 });
