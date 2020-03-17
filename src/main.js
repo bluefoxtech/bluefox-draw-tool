@@ -575,6 +575,15 @@ submitButton.addEventListener("click", function() {
         retrieveFeaturesFromLocalStorage();
       }
 
+      function getUrlId() {
+        const url = window.location.href.toString();
+        const regex = /userid=(.*)/;
+        const getId = url.match(regex);
+        return getId[1];
+    };
+
+    const jdiId = getUrlId();
+
       const saveLocalStorageToDatabase = localStorage.getItem(
         "polygon-features"
       );
@@ -587,24 +596,25 @@ submitButton.addEventListener("click", function() {
 
       let mapId = "1233/";
 
-      let postDatabaseUrl = opusUrl + mapId + getId["user_id"];
+      let postDatabaseUrl = opusUrl + mapId + jdiId;
 
       let postOptions = {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
         },
-        body: "features=" + saveLocalStorageToDatabase
+        body: jdiId+ "=" + saveLocalStorageToDatabase
       };
 
       fetch(postDatabaseUrl, postOptions)
         .then(response => {
-          // response.json();
           console.log(response);
         })
         .catch(err => {
           console.log(err);
         });
+        localStorage.clear();
+        setTimeout(() => location.reload(), 500);
     }
   }
 });
@@ -639,7 +649,7 @@ loadDraft.addEventListener("click", e => {
   };
 
   let req = new Request(
-    "https://dev.opus4.co.uk/api/v1/call-for-sites/1233/86355",
+    "https://dev.opus4.co.uk/api/v1/call-for-sites/1233/26129",
     options
   );
 
@@ -658,8 +668,6 @@ loadDraft.addEventListener("click", e => {
     .catch(err => {
       console.log(err);
     });
-
-  console.log("retrieved data", retrievedFeaturesFromDatabase);
 });
 
 /*
