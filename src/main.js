@@ -15,6 +15,7 @@ import { defaults as defaultControls, Attribution } from "ol/control";
 import { getArea, getLength } from "ol/sphere";
 import MultiPoint from "ol/geom/MultiPoint";
 import "./main.css";
+import 'whatwg-fetch';
 
 // Global variables
 const drawnPolygons = [];
@@ -615,9 +616,8 @@ submitButton.addEventListener("click", function() {
         });
         localStorage.clear();
         setTimeout(() => {          
-          location.reload();
           alert("Thank you. Your drawing has now been submitted.");
-
+          window.location.reload();
         }, 1000);
     }
   }
