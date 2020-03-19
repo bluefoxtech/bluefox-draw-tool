@@ -15,7 +15,7 @@ import { defaults as defaultControls, Attribution } from "ol/control";
 import { getArea, getLength } from "ol/sphere";
 import MultiPoint from "ol/geom/MultiPoint";
 import "./main.css";
-import 'whatwg-fetch';
+import "whatwg-fetch";
 
 // Global variables
 const drawnPolygons = [];
@@ -570,22 +570,19 @@ submitButton.addEventListener("click", function() {
         retrieveFeaturesFromLocalStorage();
       }
 
-      function getUrlId() {
+      // grab the userid parameter from URL string 
+      const getUrlId = () => {
         const url = window.location.href.toString();
         const regex = /userid=(.*)/;
         const getId = url.match(regex);
         return getId[1];
-    };
+      }
 
-    const jdiId = getUrlId();
+      const jdiId = getUrlId();
 
       const saveLocalStorageToDatabase = localStorage.getItem(
         "polygon-features"
       );
-
-      const getId = JSON.parse(saveLocalStorageToDatabase);
-
-      console.log("local storage", saveLocalStorageToDatabase);
 
       const opusUrl = "https://dev.opus4.co.uk/api/v1/call-for-sites/";
 
@@ -598,7 +595,7 @@ submitButton.addEventListener("click", function() {
         headers: {
           "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
         },
-        body: jdiId+ "=" + saveLocalStorageToDatabase
+        body: jdiId + "=" + saveLocalStorageToDatabase
       };
 
       fetch(postDatabaseUrl, postOptions)
@@ -608,11 +605,11 @@ submitButton.addEventListener("click", function() {
         .catch(err => {
           console.log(err);
         });
-        localStorage.clear();
-        setTimeout(() => {          
-          alert("Thank you. Your drawing has now been submitted.");
-          window.location.reload();
-        }, 1000);
+      localStorage.clear();
+      setTimeout(() => {
+        alert("Thank you. Your drawing has now been submitted.");
+        window.location.reload();
+      }, 1000);
     }
   }
 });
