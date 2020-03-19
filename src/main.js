@@ -468,12 +468,6 @@ if (localStorage.getItem("polygon-features") === null) {
       }
       drawnPolygons.push(jsonFeaturesToObject);
 
-      // TO BE REPLACED! Insert USER ID from JDi
-      const userId = Math.floor(Math.random() * 100000);
-
-      // add user id to features drawn
-      drawnPolygons[0]["user_id"] = userId;
-
       // add to local storage
       const jsonFeaturesToString = JSON.stringify(jsonFeaturesToObject);
       localStorage.setItem("polygon-features", jsonFeaturesToString);
