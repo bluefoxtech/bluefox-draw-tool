@@ -434,57 +434,50 @@ drawingLayer.setStyle(stylePolygon);
 /*
 Check if the database has a record for user
 */
-
 // grab the userid parameter from URL string
 const getUrlId = () => {
-  console.log('id function')
   const url = window.location.href.toString();
   const regex = /userid=(.*)/;
   const getId = url.match(regex);
   return getId[1];
 };
 
-window.onload = function checkDatabase() {
-  if (localStorage.getItem("polygon-features") === null) {
-    const jdiId = getUrlId();
-    let retrievedFeaturesFromDatabase;
-    let headerSettings = new Headers();
+function checkDatabase() {
+  const jdiId = getUrlId();
+  let retrievedFeaturesFromDatabase;
+  let headerSettings = new Headers();
 
-    // request options
-    let options = {
-      method: "GET",
-      headers: headerSettings,
-      mode: "cors",
-      cache: "default"
-    };
+  // request options
+  let options = {
+    method: "GET",
+    headers: headerSettings,
+    mode: "cors",
+    cache: "default"
+  };
 
-    const opusUrl = "https://dev.opus4.co.uk/api/v1/call-for-sites/";
+  const opusUrl = "https://dev.opus4.co.uk/api/v1/call-for-sites/";
 
-      let mapId = "1233/";
+  let mapId = "1233/";
 
-      let getDatabaseUrl = opusUrl + mapId + jdiId;
+  let getDatabaseUrl = opusUrl + mapId + jdiId;
 
-    let req = new Request(
-      getDatabaseUrl,
-      options
-    );
+  let req = new Request(getDatabaseUrl, options);
 
-    fetch(req)
-      .then(response => {
-        if (response.status === 200) {
-          return response.json();
-        }
-      })
-      .then(data => {
-        retrievedFeaturesFromDatabase = Object.values(data).pop();
-        localStorage.setItem("polygon-features", retrievedFeaturesFromDatabase);
-        setTimeout(() => location.reload(), 500);
-      })
-      .catch(err => {
-        console.log("No record found in database");
-      });
-  }
-};
+  fetch(req)
+    .then(response => {
+      if (response.status === 200) {
+        return response.json();
+      }
+    })
+    .then(data => {
+      retrievedFeaturesFromDatabase = Object.values(data).pop();
+      localStorage.setItem("polygon-features", retrievedFeaturesFromDatabase);
+      setTimeout(() => location.reload(), 500);
+    })
+    .catch(err => {
+      console.log("No record found in database");
+    });
+}
 
 /*
 SAVE FEATURE TO LOCALSTORAGE
@@ -493,6 +486,8 @@ Polygons will persist if user closes/refreshes/opens new tab in browser
 
 // check if localStorage has an item
 if (localStorage.getItem("polygon-features") === null) {
+  //Check database to see if a record exists
+  checkDatabase();
   // if there's nothing stored in localStorage and the drawnPolygons array is empty
   if (drawnPolygons.length === 0) {
     drawingSource.on("change", function() {
@@ -655,7 +650,7 @@ submitButton.addEventListener("click", function() {
       localStorage.clear();
       setTimeout(() => {
         alert("Thank you. Your drawing has now been submitted.");
-        window.location.reload();
+        // window.location.reload();
       }, 1000);
     }
   }
