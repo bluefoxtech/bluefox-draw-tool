@@ -643,10 +643,14 @@ submitButton.addEventListener("click", function() {
       fetch(postDatabaseUrl, postOptions)
         .then(response => {
           if (response.status === 200) {
-            localStorage.clear();
             setTimeout(() => {
               alert("Thank you. Your drawing has now been submitted.");
-            }, 500);
+              const features = drawingLayer.getSource().getFeatures();
+              features.forEach((feature) => {
+                  drawingLayer.getSource().removeFeature(feature);
+              });
+              localStorage.clear();
+            }, 1000);
           } else {
             setTimeout(() => {
             alert("You cannot submit a drawing more than once.");
