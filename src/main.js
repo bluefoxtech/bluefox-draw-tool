@@ -642,16 +642,20 @@ submitButton.addEventListener("click", function() {
 
       fetch(postDatabaseUrl, postOptions)
         .then(response => {
-          console.log(response);
+          if (response.status === 200) {
+            localStorage.clear();
+            setTimeout(() => {
+              alert("Thank you. Your drawing has now been submitted.");
+            }, 500);
+          } else {
+            setTimeout(() => {
+            alert("You cannot submit a drawing more than once.");
+          }, 500);
+          }
         })
         .catch(err => {
           console.log(err);
         });
-      localStorage.clear();
-      setTimeout(() => {
-        alert("Thank you. Your drawing has now been submitted.");
-        // window.location.reload();
-      }, 1000);
     }
   }
 });
