@@ -433,9 +433,21 @@ drawingLayer.setStyle(stylePolygon);
 
 /*
 Check if the database has a record for user
-*/ 
+*/
+
+// grab the userid parameter from URL string
+const getUrlId = () => {
+  console.log('id function')
+  const url = window.location.href.toString();
+  const regex = /userid=(.*)/;
+  const getId = url.match(regex);
+  return getId[1];
+};
+
 window.onload = function checkDatabase() {
   if (localStorage.getItem("polygon-features") === null) {
+    const jdiId = getUrlId();
+    let retrievedFeaturesFromDatabase;
     let headerSettings = new Headers();
 
     // request options
@@ -445,29 +457,31 @@ window.onload = function checkDatabase() {
       mode: "cors",
       cache: "default"
     };
-  
+
+    const opusUrl = "https://dev.opus4.co.uk/api/v1/call-for-sites/";
+
+      let mapId = "1233/";
+
+      let getDatabaseUrl = opusUrl + mapId + jdiId;
+
     let req = new Request(
-      "https://dev.opus4.co.uk/api/v1/call-for-sites/1233/phoebe",
+      getDatabaseUrl,
       options
     );
-  
-    let retrievedFeaturesFromDatabase;
 
     fetch(req)
       .then(response => {
         if (response.status === 200) {
-          console.log(response);
           return response.json();
         }
       })
       .then(data => {
-        console.log(data);
         retrievedFeaturesFromDatabase = Object.values(data).pop();
         localStorage.setItem("polygon-features", retrievedFeaturesFromDatabase);
         setTimeout(() => location.reload(), 500);
       })
       .catch(err => {
-        console.log("No record found on database");
+        console.log("No record found in database");
       });
   }
 };
@@ -610,14 +624,6 @@ submitButton.addEventListener("click", function() {
       if (localStorage.getItem("new-polygon-features") !== null) {
         retrieveFeaturesFromLocalStorage();
       }
-
-      // grab the userid parameter from URL string
-      const getUrlId = () => {
-        const url = window.location.href.toString();
-        const regex = /userid=(.*)/;
-        const getId = url.match(regex);
-        return getId[1];
-      };
 
       const jdiId = getUrlId();
 
