@@ -434,10 +434,10 @@ drawingLayer.setStyle(stylePolygon);
 /*
 Check if the database has a record for user
 */
-// grab the userid parameter from URL string
+// grab the siteid parameter from URL string
 const getUrlId = () => {
   const url = window.location.href.toString();
-  const regex = /userid=(.*)/;
+  const regex = /siteid=(.*)/;
   const getId = url.match(regex);
   return getId[1];
 };
