@@ -43,13 +43,13 @@ h4 {
 
 button {
   padding: 5px;
-  background: rgba(33, 68, 132, 1);
+  background: #5e7a87;
   cursor: pointer;
   padding: 0.4em 0.65em;
-  border-top: rgba(33, 68, 132, 1) 2px solid;
-  border-left: rgba(33, 68, 132, 1) 2px solid;
-  border-right: rgba(33, 68, 132, 1) 2px solid;
-  border-bottom: solid 2px #11254a;
+  border-top: #5e7a87 2px solid;
+  border-left: #5e7a87 2px solid;
+  border-right: #5e7a87 2px solid;
+  border-bottom: solid 2px #5e7a87;
   font-size: 0.9em;
   font-weight: bold;
   color: white;
