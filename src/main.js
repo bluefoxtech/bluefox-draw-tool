@@ -15,6 +15,7 @@ import { defaults as defaultControls, Attribution } from "ol/control";
 import { getArea, getLength } from "ol/sphere";
 import MultiPoint from "ol/geom/MultiPoint";
 import "./main.css";
+import "whatwg-fetch";
 
 // Global variables
 const drawnPolygons = [];
@@ -431,12 +432,62 @@ function selectedPolygonStyles(feature) {
 drawingLayer.setStyle(stylePolygon);
 
 /*
+Check if the database has a record for user
+*/
+// grab the siteid parameter from URL string
+const getUrlId = () => {
+  const url = window.location.href.toString();
+  const regex = /siteid=(.*)/;
+  const getId = url.match(regex);
+  return getId[1];
+};
+
+function checkDatabase() {
+  const jdiId = getUrlId();
+  let retrievedFeaturesFromDatabase;
+  let headerSettings = new Headers();
+
+  // request options
+  let options = {
+    method: "GET",
+    headers: headerSettings,
+    mode: "cors",
+    cache: "default"
+  };
+
+  const opusUrl = "https://dev.opus4.co.uk/api/v1/call-for-sites/";
+
+  let mapId = "1233/";
+
+  let getDatabaseUrl = opusUrl + mapId + jdiId;
+
+  let req = new Request(getDatabaseUrl, options);
+
+  fetch(req)
+    .then(response => {
+      if (response.status === 200) {
+        return response.json();
+      }
+    })
+    .then(data => {
+      retrievedFeaturesFromDatabase = Object.values(data).pop();
+      localStorage.setItem("polygon-features", retrievedFeaturesFromDatabase);
+      setTimeout(() => location.reload(), 500);
+    })
+    .catch(err => {
+      console.log("No record found in database");
+    });
+}
+
+/*
 SAVE FEATURE TO LOCALSTORAGE
 Polygons will persist if user closes/refreshes/opens new tab in browser
 */
 
 // check if localStorage has an item
 if (localStorage.getItem("polygon-features") === null) {
+  //Check database to see if a record exists
+  checkDatabase();
   // if there's nothing stored in localStorage and the drawnPolygons array is empty
   if (drawnPolygons.length === 0) {
     drawingSource.on("change", function() {
@@ -466,12 +517,6 @@ if (localStorage.getItem("polygon-features") === null) {
         drawnPolygons.pop();
       }
       drawnPolygons.push(jsonFeaturesToObject);
-
-      // insert USER ID from JDi
-      const userId = "jdi-id-random-id";
-
-      // add user id to features drawn
-      drawnPolygons[0]["user_id"] = userId;
 
       // add to local storage
       const jsonFeaturesToString = JSON.stringify(jsonFeaturesToObject);
@@ -575,12 +620,46 @@ submitButton.addEventListener("click", function() {
         retrieveFeaturesFromLocalStorage();
       }
 
-      const saveLocalStorageToDatabase = JSON.parse(
-        localStorage.getItem("polygon-features")
-      );
-      console.log("local storage", saveLocalStorageToDatabase);
+      const jdiId = getUrlId();
 
-      // NEED TO COMPLETE - save to database then clear local storage
+      const saveLocalStorageToDatabase = localStorage.getItem(
+        "polygon-features"
+      );
+
+      const opusUrl = "https://dev.opus4.co.uk/api/v1/call-for-sites/";
+
+      let mapId = "1233/";
+
+      let postDatabaseUrl = opusUrl + mapId + jdiId;
+
+      let postOptions = {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
+        },
+        body: jdiId + "=" + saveLocalStorageToDatabase
+      };
+
+      fetch(postDatabaseUrl, postOptions)
+        .then(response => {
+          if (response.status === 200) {
+            setTimeout(() => {
+              alert("Thank you. Your drawing has now been submitted.");
+              const features = drawingLayer.getSource().getFeatures();
+              features.forEach((feature) => {
+                  drawingLayer.getSource().removeFeature(feature);
+              });
+              localStorage.clear();
+            }, 1000);
+          } else {
+            setTimeout(() => {
+            alert("You cannot submit a drawing more than once.");
+          }, 500);
+          }
+        })
+        .catch(err => {
+          console.log(err);
+        });
     }
   }
 });
@@ -595,70 +674,5 @@ clear.addEventListener("click", function() {
     savedPolygonsSource.clear();
     localStorage.clear();
     window.location.reload();
-  }
-});
-
-/*
-LOAD DRAFT BUTTON
-*/
-const postmanServerUrlGet =
-  "https://37e794d2-e93e-49c9-876f-6abcac26fbd3.mock.pstmn.io/database";
-
-const loadDraft = document.getElementById("load-draft");
-loadDraft.addEventListener("click", e => {
-  let h = new Headers();
-
-  // request options
-  let options = {
-    method: "GET",
-    headers: h,
-    mode: "cors",
-    cache: "default"
-  };
-
-  let req = new Request(postmanServerUrlGet, options);
-
-  fetch(req)
-    .then(response => {
-      return response.text();
-    })
-    .then(data => {
-      let output = data;
-      localStorage.setItem("polygon-features", output);
-      setTimeout(() => location.reload(), 500);
-    })
-    .catch(err => {
-      console.log(err);
-    });
-});
-
-/*
-SAVE DRAFT BUTTON
-*/
-const saveDraftButton = document.getElementById("save-draft");
-saveDraftButton.addEventListener("click", function() {
-  if (drawnPolygons.length === 0) {
-    alert("You cannot save an empty drawing.");
-  } else if (
-    drawnPolygons[0].features.length === 0 &&
-    drawnPolygons.length === 1
-  ) {
-    alert("You cannot save an empty drawing.");
-  } else {
-    if (confirm("Are you sure you want to save?")) {
-      if (localStorage.getItem("new-polygon-features") !== null) {
-        retrieveFeaturesFromLocalStorage();
-      }
-
-      const saveDraftToLocalStorageToDatabase = JSON.parse(
-        localStorage.getItem("polygon-features")
-      );
-      console.log(
-        "local storage save draft",
-        saveDraftToLocalStorageToDatabase
-      );
-
-      // NEED TO COMPLETE - save to database then clear local storage
-    }
   }
 });
