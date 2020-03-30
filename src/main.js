@@ -16,6 +16,7 @@ import { getArea, getLength } from "ol/sphere";
 import MultiPoint from "ol/geom/MultiPoint";
 import "./main.css";
 import "whatwg-fetch";
+import proj4 from "proj4";
 
 // Global variables
 const drawnPolygons = [];
