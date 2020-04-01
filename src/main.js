@@ -17,6 +17,9 @@ import MultiPoint from "ol/geom/MultiPoint";
 import "./main.css";
 import "whatwg-fetch";
 import proj4 from "proj4";
+import TileWMS from "ol/source/TileWMS";
+import OSM from 'ol/source/OSM';
+import TileLayer from 'ol/layer/Tile';
 
 // Global variables
 const drawnPolygons = [];
@@ -67,6 +70,21 @@ const mapLayer = new VectorLayer({
   source: mapSource
 });
 
+// WMS tile layer
+const wmsTileMapLayer = new TileLayer({
+  source: new TileWMS({
+    url: 'http://ogc.bgs.ac.uk/cgi-bin/BGS_Bedrock_and_Superficial_Geology/wms?',
+    params: {
+      LAYERS: 'BGS_EN_Bedrock_and_Superficial_Geology'
+}
+  })
+});
+
+// open street map layer
+const osmLayer = new TileLayer({
+  source: new OSM()
+})
+
 // draw layer
 const drawingSource = new VectorSource();
 
@@ -81,9 +99,12 @@ const savedPolygonsLayer = new VectorLayer({
 });
 
 // add additional layers to map layers to Map
+map.addLayer(osmLayer);
+// map.addLayer(wmsTileMapLayer);
 map.addLayer(mapLayer);
 map.addLayer(drawingLayer);
 map.addLayer(savedPolygonsLayer);
+
 
 // format of map
 const format = new GeoJSON({ featureProjection: "EPSG:3857" });
@@ -647,15 +668,15 @@ submitButton.addEventListener("click", function() {
             setTimeout(() => {
               alert("Thank you. Your drawing has now been submitted.");
               const features = drawingLayer.getSource().getFeatures();
-              features.forEach((feature) => {
-                  drawingLayer.getSource().removeFeature(feature);
+              features.forEach(feature => {
+                drawingLayer.getSource().removeFeature(feature);
               });
               localStorage.clear();
             }, 1000);
           } else {
             setTimeout(() => {
-            alert("You cannot submit a drawing more than once.");
-          }, 500);
+              alert("You cannot submit a drawing more than once.");
+            }, 500);
           }
         })
         .catch(err => {
