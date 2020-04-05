@@ -18,8 +18,10 @@ import "./main.css";
 import "whatwg-fetch";
 import proj4 from "proj4";
 import TileWMS from "ol/source/TileWMS";
-import OSM from 'ol/source/OSM';
-import TileLayer from 'ol/layer/Tile';
+import OSM from "ol/source/OSM";
+import TileLayer from "ol/layer/Tile";
+import { register } from "ol/proj/proj4";
+import { get as getProjection } from "ol/proj";
 
 // Global variables
 const drawnPolygons = [];
@@ -27,6 +29,78 @@ const drawnPolygons = [];
 const attribution = new Attribution({
   collapsible: false
 });
+
+// Projection EPSG: 27700
+proj4.defs(
+  "EPSG:27700",
+  "+proj=tmerc +lat_0=49 +lon_0=-2 +k=0.9996012717 +x_0=400000 +y_0=-100000 +ellps=airy +towgs84=446.448,-125.157,542.06,0.15,0.247,0.842,-20.489 +units=m +no_defs"
+);
+register(proj4);
+
+const britishNationalGridProjection = getProjection("EPSG:27700");
+
+// const conwyCoords = transform([53.28088, -3.82877], 'EPSG:3857', 'EPSG:27700');
+// const projection = new Projection({
+//   code: "EPSG:27700",
+//   extent: [-84667.14, 11795.97, 608366.68, 1230247.3]
+// });
+
+const extent = [-84667.14, 11795.97, 608366.68, 1230247.3];
+
+const geojsonobject = {
+  type: "FeatureCollection",
+  features: [
+    {
+      type: "Feature",
+      geometry: {
+        type: "Polygon",
+        coordinates: [
+          [
+            [-3.8292972570748725, 53.281392550522895],
+            [-3.830251692921133, 53.28084389364648],
+            [-3.8286923127787906, 53.28076021474689],
+            [-3.8292972570748725, 53.281392550522895]
+          ]
+        ]
+      },
+      properties: {
+        "polygon-area": "Area = 0.346 \nhectares",
+        "polygon-id": "16131"
+      }
+    },
+    {
+      'type': "Feature",
+      'geometry': {
+        'type': "Polygon",
+        'coordinates': [
+          [
+            [-3.830251692921133, 53.28084389364648],
+            [-3.8306350256923234, 53.28064229425175],
+            [-3.8296182177300775, 53.28055901441223],
+            [-3.830251692921133, 53.28084389364648]
+          ]
+        ]
+      },
+      'properties': null
+    },
+    {
+      'type': "Feature",
+      'geometry': {
+        'type': "Polygon",
+        'coordinates': [
+          [
+            [-3.8276238787105576, 53.280859919848695],
+            [-3.8283347435372694, 53.28047640001688],
+            [-3.8271404777942784, 53.28034700482198],
+            [-3.8276238787105576, 53.280859919848695]
+          ]
+        ]
+      },
+      'properties': null
+    }
+  ],
+  user_id: 68933
+};
 
 /**
  * MAP & LAYERS
@@ -45,10 +119,32 @@ const map = new Map({
   ],
   controls: defaultControls({ attribution: false }).extend([attribution]),
   view: new View({
-    center: fromLonLat([-3.82877, 53.28088]),
-    zoom: 17.5
+    // center: fromLonLat([-3.82877, 53.28088]), // epsg:3857
+    zoom: 13,
+    center: [278500, 376000], // 27700
+    projection: britishNationalGridProjection
   })
 });
+
+/////////////// TEST GEOJSON layer
+const testgeojsonlayer = new VectorLayer({
+  source: new VectorSource({
+    features: (new GeoJSON()).readFeatures(geojsonobject, {
+      featureProjection: 'EPSG:27700'
+  })
+  }),
+  style: new Style({
+    stroke: new Stroke({
+      color: "#F89911",
+      width: 2,
+      lineDash: [5, 5]
+    }),
+    fill: new Fill({
+      color: "black"
+    })
+  })
+})
+///////////////
 
 // collapse the attribution infomation when screen < 600px
 function checkSize() {
@@ -73,17 +169,18 @@ const mapLayer = new VectorLayer({
 // WMS tile layer
 const wmsTileMapLayer = new TileLayer({
   source: new TileWMS({
-    url: 'http://ogc.bgs.ac.uk/cgi-bin/BGS_Bedrock_and_Superficial_Geology/wms?',
+    url:
+      "http://ogc.bgs.ac.uk/cgi-bin/BGS_Bedrock_and_Superficial_Geology/wms?",
     params: {
-      LAYERS: 'BGS_EN_Bedrock_and_Superficial_Geology'
-}
+      LAYERS: "BGS_EN_Bedrock_and_Superficial_Geology"
+    }
   })
 });
 
 // open street map layer
 const osmLayer = new TileLayer({
   source: new OSM()
-})
+});
 
 // draw layer
 const drawingSource = new VectorSource();
@@ -102,11 +199,11 @@ const savedPolygonsLayer = new VectorLayer({
 map.addLayer(osmLayer);
 // map.addLayer(wmsTileMapLayer);
 map.addLayer(mapLayer);
+map.addLayer(testgeojsonlayer);
 map.addLayer(drawingLayer);
 map.addLayer(savedPolygonsLayer);
 
-
-// format of map
+// projection of features when drawing 
 const format = new GeoJSON({ featureProjection: "EPSG:3857" });
 
 /**
@@ -464,42 +561,42 @@ const getUrlId = () => {
   return getId[1];
 };
 
-function checkDatabase() {
-  const jdiId = getUrlId();
-  let retrievedFeaturesFromDatabase;
-  let headerSettings = new Headers();
+// function checkDatabase() {
+//   const jdiId = getUrlId();
+//   let retrievedFeaturesFromDatabase;
+//   let headerSettings = new Headers();
 
-  // request options
-  let options = {
-    method: "GET",
-    headers: headerSettings,
-    mode: "cors",
-    cache: "default"
-  };
+//   // request options
+//   let options = {
+//     method: "GET",
+//     headers: headerSettings,
+//     mode: "cors",
+//     cache: "default"
+//   };
 
-  const opusUrl = "https://dev.opus4.co.uk/api/v1/call-for-sites/";
+//   const opusUrl = "https://dev.opus4.co.uk/api/v1/call-for-sites/";
 
-  let mapId = "1233/";
+//   let mapId = "1233/";
 
-  let getDatabaseUrl = opusUrl + mapId + jdiId;
+//   let getDatabaseUrl = opusUrl + mapId + jdiId;
 
-  let req = new Request(getDatabaseUrl, options);
+//   let req = new Request(getDatabaseUrl, options);
 
-  fetch(req)
-    .then(response => {
-      if (response.status === 200) {
-        return response.json();
-      }
-    })
-    .then(data => {
-      retrievedFeaturesFromDatabase = Object.values(data).pop();
-      localStorage.setItem("polygon-features", retrievedFeaturesFromDatabase);
-      setTimeout(() => location.reload(), 500);
-    })
-    .catch(err => {
-      console.log("No record found in database");
-    });
-}
+//   fetch(req)
+//     .then(response => {
+//       if (response.status === 200) {
+//         return response.json();
+//       }
+//     })
+//     .then(data => {
+//       retrievedFeaturesFromDatabase = Object.values(data).pop();
+//       localStorage.setItem("polygon-features", retrievedFeaturesFromDatabase);
+//       setTimeout(() => location.reload(), 500);
+//     })
+//     .catch(err => {
+//       console.log("No record found in database");
+//     });
+// }
 
 /*
 SAVE FEATURE TO LOCALSTORAGE
@@ -509,7 +606,7 @@ Polygons will persist if user closes/refreshes/opens new tab in browser
 // check if localStorage has an item
 if (localStorage.getItem("polygon-features") === null) {
   //Check database to see if a record exists
-  checkDatabase();
+  // checkDatabase(); //UNCOMMENT LATER!!!!!!!!!1
   // if there's nothing stored in localStorage and the drawnPolygons array is empty
   if (drawnPolygons.length === 0) {
     drawingSource.on("change", function() {
