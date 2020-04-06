@@ -111,7 +111,7 @@ const map = new Map({
   layers: [
     new VectorLayer({
       source: new VectorSource({
-        format: new GeoJSON(),
+        format: new GeoJSON({ featureProjection: 'EPSG:27700'}),
         url: "./src/data/line.geojson",
         attributions: "© Crown copyright and database rights 2020 OS 100038864"
       })
@@ -177,6 +177,18 @@ const wmsTileMapLayer = new TileLayer({
   })
 });
 
+//OpusMap WMS layer
+const opusMapWms = new TileLayer({
+  source: new TileWMS({
+    urls: ["https://ts1.opus4.co.uk/wms", "https://ts2.opus4.co.uk/wms", "https://ts3.opus4.co.uk/wms"],
+    params: {
+      LAYERS: "b:15",
+      VERSION: "1.1.1",
+      SRS: "EPSG:27700"
+    }
+  })
+});
+
 // open street map layer
 const osmLayer = new TileLayer({
   source: new OSM()
@@ -196,7 +208,8 @@ const savedPolygonsLayer = new VectorLayer({
 });
 
 // add additional layers to map layers to Map
-map.addLayer(osmLayer);
+// map.addLayer(osmLayer);
+map.addLayer(opusMapWms);
 // map.addLayer(wmsTileMapLayer);
 map.addLayer(mapLayer);
 map.addLayer(testgeojsonlayer);
