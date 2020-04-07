@@ -39,69 +39,6 @@ register(proj4);
 
 const britishNationalGridProjection = getProjection("EPSG:27700");
 
-// const conwyCoords = transform([53.28088, -3.82877], 'EPSG:3857', 'EPSG:27700');
-// const projection = new Projection({
-//   code: "EPSG:27700",
-//   extent: [-84667.14, 11795.97, 608366.68, 1230247.3]
-// });
-
-const extent = [-84667.14, 11795.97, 608366.68, 1230247.3];
-
-const geojsonobject = {
-  type: "FeatureCollection",
-  features: [
-    {
-      type: "Feature",
-      geometry: {
-        type: "Polygon",
-        coordinates: [
-          [
-            [-3.8292972570748725, 53.281392550522895],
-            [-3.830251692921133, 53.28084389364648],
-            [-3.8286923127787906, 53.28076021474689],
-            [-3.8292972570748725, 53.281392550522895]
-          ]
-        ]
-      },
-      properties: {
-        "polygon-area": "Area = 0.346 \nhectares",
-        "polygon-id": "16131"
-      }
-    },
-    {
-      'type': "Feature",
-      'geometry': {
-        'type': "Polygon",
-        'coordinates': [
-          [
-            [-3.830251692921133, 53.28084389364648],
-            [-3.8306350256923234, 53.28064229425175],
-            [-3.8296182177300775, 53.28055901441223],
-            [-3.830251692921133, 53.28084389364648]
-          ]
-        ]
-      },
-      'properties': null
-    },
-    {
-      'type': "Feature",
-      'geometry': {
-        'type': "Polygon",
-        'coordinates': [
-          [
-            [-3.8276238787105576, 53.280859919848695],
-            [-3.8283347435372694, 53.28047640001688],
-            [-3.8271404777942784, 53.28034700482198],
-            [-3.8276238787105576, 53.280859919848695]
-          ]
-        ]
-      },
-      'properties': null
-    }
-  ],
-  user_id: 68933
-};
-
 /**
  * MAP & LAYERS
  * */
@@ -111,7 +48,7 @@ const map = new Map({
   layers: [
     new VectorLayer({
       source: new VectorSource({
-        format: new GeoJSON({ featureProjection: 'EPSG:27700'}),
+        format: new GeoJSON(),
         url: "./src/data/line.geojson",
         attributions: "© Crown copyright and database rights 2020 OS 100038864"
       })
@@ -120,31 +57,11 @@ const map = new Map({
   controls: defaultControls({ attribution: false }).extend([attribution]),
   view: new View({
     // center: fromLonLat([-3.82877, 53.28088]), // epsg:3857
-    zoom: 13,
-    center: [278500, 376000], // 27700
+    zoom: 18,
+    center: [278100, 377500], // 27700
     projection: britishNationalGridProjection
   })
 });
-
-/////////////// TEST GEOJSON layer
-const testgeojsonlayer = new VectorLayer({
-  source: new VectorSource({
-    features: (new GeoJSON()).readFeatures(geojsonobject, {
-      featureProjection: 'EPSG:27700'
-  })
-  }),
-  style: new Style({
-    stroke: new Stroke({
-      color: "#F89911",
-      width: 2,
-      lineDash: [5, 5]
-    }),
-    fill: new Fill({
-      color: "black"
-    })
-  })
-})
-///////////////
 
 // collapse the attribution infomation when screen < 600px
 function checkSize() {
@@ -212,7 +129,6 @@ const savedPolygonsLayer = new VectorLayer({
 map.addLayer(opusMapWms);
 // map.addLayer(wmsTileMapLayer);
 map.addLayer(mapLayer);
-map.addLayer(testgeojsonlayer);
 map.addLayer(drawingLayer);
 map.addLayer(savedPolygonsLayer);
 
