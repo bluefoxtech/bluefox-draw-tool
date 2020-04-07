@@ -18,7 +18,6 @@ import "./main.css";
 import "whatwg-fetch";
 import proj4 from "proj4";
 import TileWMS from "ol/source/TileWMS";
-import OSM from "ol/source/OSM";
 import TileLayer from "ol/layer/Tile";
 import { register } from "ol/proj/proj4";
 import { get as getProjection } from "ol/proj";
@@ -83,17 +82,6 @@ const mapLayer = new VectorLayer({
   source: mapSource
 });
 
-// WMS tile layer
-const wmsTileMapLayer = new TileLayer({
-  source: new TileWMS({
-    url:
-      "http://ogc.bgs.ac.uk/cgi-bin/BGS_Bedrock_and_Superficial_Geology/wms?",
-    params: {
-      LAYERS: "BGS_EN_Bedrock_and_Superficial_Geology"
-    }
-  })
-});
-
 //OpusMap WMS layer
 const opusMapWms = new TileLayer({
   source: new TileWMS({
@@ -104,11 +92,6 @@ const opusMapWms = new TileLayer({
       SRS: "EPSG:27700"
     }
   })
-});
-
-// open street map layer
-const osmLayer = new TileLayer({
-  source: new OSM()
 });
 
 // draw layer
@@ -125,9 +108,7 @@ const savedPolygonsLayer = new VectorLayer({
 });
 
 // add additional layers to map layers to Map
-// map.addLayer(osmLayer);
 map.addLayer(opusMapWms);
-// map.addLayer(wmsTileMapLayer);
 map.addLayer(mapLayer);
 map.addLayer(drawingLayer);
 map.addLayer(savedPolygonsLayer);
@@ -535,7 +516,7 @@ Polygons will persist if user closes/refreshes/opens new tab in browser
 // check if localStorage has an item
 if (localStorage.getItem("polygon-features") === null) {
   //Check database to see if a record exists
-  // checkDatabase(); //UNCOMMENT LATER!!!!!!!!!1
+  // checkDatabase(); // UNCOMMENT LATER
   // if there's nothing stored in localStorage and the drawnPolygons array is empty
   if (drawnPolygons.length === 0) {
     drawingSource.on("change", function() {
