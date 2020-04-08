@@ -16,6 +16,11 @@ import { getArea, getLength } from "ol/sphere";
 import MultiPoint from "ol/geom/MultiPoint";
 import "./main.css";
 import "whatwg-fetch";
+import proj4 from "proj4";
+import TileWMS from "ol/source/TileWMS";
+import TileLayer from "ol/layer/Tile";
+import { register } from "ol/proj/proj4";
+import { get as getProjection } from "ol/proj";
 
 // Global variables
 const drawnPolygons = [];
@@ -23,6 +28,15 @@ const drawnPolygons = [];
 const attribution = new Attribution({
   collapsible: false
 });
+
+// Projection EPSG: 27700
+proj4.defs(
+  "EPSG:27700",
+  "+proj=tmerc +lat_0=49 +lon_0=-2 +k=0.9996012717 +x_0=400000 +y_0=-100000 +ellps=airy +towgs84=446.448,-125.157,542.06,0.15,0.247,0.842,-20.489 +units=m +no_defs"
+);
+register(proj4);
+
+const britishNationalGridProjection = getProjection("EPSG:27700");
 
 /**
  * MAP & LAYERS
@@ -41,8 +55,10 @@ const map = new Map({
   ],
   controls: defaultControls({ attribution: false }).extend([attribution]),
   view: new View({
-    center: fromLonLat([-3.82877, 53.28088]),
-    zoom: 17.5
+    // center: fromLonLat([-3.82877, 53.28088]), // epsg:3857
+    zoom: 18,
+    center: [278100, 377500], // 27700
+    projection: britishNationalGridProjection
   })
 });
 
@@ -66,6 +82,18 @@ const mapLayer = new VectorLayer({
   source: mapSource
 });
 
+//OpusMap WMS layer
+const opusMapWms = new TileLayer({
+  source: new TileWMS({
+    urls: ["https://ts1.opus4.co.uk/wms", "https://ts2.opus4.co.uk/wms", "https://ts3.opus4.co.uk/wms"],
+    params: {
+      LAYERS: "b:15",
+      VERSION: "1.1.1",
+      SRS: "EPSG:27700"
+    }
+  })
+});
+
 // draw layer
 const drawingSource = new VectorSource();
 
@@ -80,11 +108,12 @@ const savedPolygonsLayer = new VectorLayer({
 });
 
 // add additional layers to map layers to Map
+map.addLayer(opusMapWms);
 map.addLayer(mapLayer);
 map.addLayer(drawingLayer);
 map.addLayer(savedPolygonsLayer);
 
-// format of map
+// projection of features when drawing 
 const format = new GeoJSON({ featureProjection: "EPSG:3857" });
 
 /**
@@ -442,42 +471,42 @@ const getUrlId = () => {
   return getId[1];
 };
 
-function checkDatabase() {
-  const jdiId = getUrlId();
-  let retrievedFeaturesFromDatabase;
-  let headerSettings = new Headers();
+// function checkDatabase() {
+//   const jdiId = getUrlId();
+//   let retrievedFeaturesFromDatabase;
+//   let headerSettings = new Headers();
 
-  // request options
-  let options = {
-    method: "GET",
-    headers: headerSettings,
-    mode: "cors",
-    cache: "default"
-  };
+//   // request options
+//   let options = {
+//     method: "GET",
+//     headers: headerSettings,
+//     mode: "cors",
+//     cache: "default"
+//   };
 
-  const opusUrl = "https://dev.opus4.co.uk/api/v1/call-for-sites/";
+//   const opusUrl = "https://dev.opus4.co.uk/api/v1/call-for-sites/";
 
-  let mapId = "1233/";
+//   let mapId = "1233/";
 
-  let getDatabaseUrl = opusUrl + mapId + jdiId;
+//   let getDatabaseUrl = opusUrl + mapId + jdiId;
 
-  let req = new Request(getDatabaseUrl, options);
+//   let req = new Request(getDatabaseUrl, options);
 
-  fetch(req)
-    .then(response => {
-      if (response.status === 200) {
-        return response.json();
-      }
-    })
-    .then(data => {
-      retrievedFeaturesFromDatabase = Object.values(data).pop();
-      localStorage.setItem("polygon-features", retrievedFeaturesFromDatabase);
-      setTimeout(() => location.reload(), 500);
-    })
-    .catch(err => {
-      console.log("No record found in database");
-    });
-}
+//   fetch(req)
+//     .then(response => {
+//       if (response.status === 200) {
+//         return response.json();
+//       }
+//     })
+//     .then(data => {
+//       retrievedFeaturesFromDatabase = Object.values(data).pop();
+//       localStorage.setItem("polygon-features", retrievedFeaturesFromDatabase);
+//       setTimeout(() => location.reload(), 500);
+//     })
+//     .catch(err => {
+//       console.log("No record found in database");
+//     });
+// }
 
 /*
 SAVE FEATURE TO LOCALSTORAGE
@@ -487,7 +516,7 @@ Polygons will persist if user closes/refreshes/opens new tab in browser
 // check if localStorage has an item
 if (localStorage.getItem("polygon-features") === null) {
   //Check database to see if a record exists
-  checkDatabase();
+  // checkDatabase(); // UNCOMMENT LATER
   // if there's nothing stored in localStorage and the drawnPolygons array is empty
   if (drawnPolygons.length === 0) {
     drawingSource.on("change", function() {
@@ -646,15 +675,15 @@ submitButton.addEventListener("click", function() {
             setTimeout(() => {
               alert("Thank you. Your drawing has now been submitted.");
               const features = drawingLayer.getSource().getFeatures();
-              features.forEach((feature) => {
-                  drawingLayer.getSource().removeFeature(feature);
+              features.forEach(feature => {
+                drawingLayer.getSource().removeFeature(feature);
               });
               localStorage.clear();
             }, 1000);
           } else {
             setTimeout(() => {
-            alert("You cannot submit a drawing more than once.");
-          }, 500);
+              alert("You cannot submit a drawing more than once.");
+            }, 500);
           }
         })
         .catch(err => {

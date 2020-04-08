@@ -1,7 +1,6 @@
 {
 "type": "FeatureCollection",
 "name": "poly",
-"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
 "features": [
 { "type": "Feature", "properties": { "LEGEND": "Building", "TOID": "0001000034220893", "VERSION": 3, "VERSIONDAT": "2016\/05\/05", "FC": 10021, "AREA": 77.773125, "PRODUCT": null, "THEME": ";Buildings;", "DESCRIPTIV": ";Building;", "DESCRIPT0": ";", "MAKE": "Manmade", "BROKEN": "N" }, "geometry": { "type": "MultiPolygon", "coordinates": [ [ [ [ -3.830681859427292, 53.278335353446856 ], [ -3.830793038903844, 53.27833357335652 ], [ -3.830798249313452, 53.278337886468236 ], [ -3.830723735984412, 53.278370226326139 ], [ -3.830681859427292, 53.278335353446856 ] ] ] ] } },
 { "type": "Feature", "properties": { "LEGEND": "Building", "TOID": "1000002667001064", "VERSION": 1, "VERSIONDAT": "2005\/10\/24", "FC": 10021, "AREA": 56.655904, "PRODUCT": null, "THEME": ";Buildings;", "DESCRIPTIV": ";Building;", "DESCRIPT0": ";", "MAKE": "Manmade", "BROKEN": "N" }, "geometry": { "type": "MultiPolygon", "coordinates": [ [ [ [ -3.830431052038781, 53.278358538910503 ], [ -3.830541597349506, 53.278449798459363 ], [ -3.830477837715681, 53.278477567899131 ], [ -3.830392477665252, 53.278407048178906 ], [ -3.830431938745855, 53.278389810655391 ], [ -3.830406753538351, 53.278369070775824 ], [ -3.830431052038781, 53.278358538910503 ] ] ] ] } },

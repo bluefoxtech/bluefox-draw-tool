@@ -1,7 +1,6 @@
 {
 "type": "FeatureCollection",
 "name": "line",
-"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
 "features": [
 { "type": "Feature", "properties": { "PRODUCT": "L", "FC": 10019, "REVDATE": "2016\/05\/05", "CHANGETYPE": null, "COUNT": null }, "geometry": { "type": "MultiLineString", "coordinates": [ [ [ -3.827344172850197, 53.28066502466816 ], [ -3.827300890451474, 53.28063321612624 ] ] ] } },
 { "type": "Feature", "properties": { "PRODUCT": "L", "FC": 10019, "REVDATE": "2016\/05\/05", "CHANGETYPE": null, "COUNT": null }, "geometry": { "type": "MultiLineString", "coordinates": [ [ [ -3.828303027556857, 53.281005321005402 ], [ -3.828212064987472, 53.281041111973806 ] ] ] } },
