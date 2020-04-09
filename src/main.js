@@ -142,7 +142,7 @@ const ModifyPolygon = {
         let modifiedOutput = formatArea(modifiedGeom);
         feature.set("polygon-area", modifiedOutput);
       });
-
+      console.log("POLYGON MODIFIED");
       const modifyFeatureCoords = format.writeFeatures(e.features.array_);
       const modifyFeatureCoordsToObject = JSON.parse(modifyFeatureCoords);
       const drawnPolygonsFeatures = drawnPolygons[0].features;
@@ -195,6 +195,10 @@ const DrawPolygon = {
   init: function() {
     map.addInteraction(this.Polygon);
     this.Polygon.setActive(false);
+
+    this.Polygon.on('drawend', function(e) {
+      console.log('DRAW: POLYGON COORDS: ', e.feature.getGeometry().getCoordinates());
+    });
   },
   Polygon: new Draw({
     source: drawingSource,
@@ -245,18 +249,19 @@ const DeletePolygon = {
             try {
               drawingSource.removeFeature(feature.element);
               feature.target.remove(feature.element);
+              console.log('DELETE: DRAWING SOURCE: ', drawnPolygons)
             } catch (err) {}
             // if feature isn't in drawingsource then try and remove it from savedPolygonsSource
             try {
               savedPolygonsSource.removeFeature(feature.element);
               feature.target.remove(feature.element);
-
               // find the polygon index position in drawnPolygons array and remove
               let position = drawnPolygons[0].features.findIndex(
                 item => item.id === feature.element.id_
               );
               let deletedItems = drawnPolygons[0].features.splice(position, 1);
-
+              
+              console.log('DELETE: POLYGON SOURCE: ', drawnPolygons)
               // store updated drawnPolygons array in local storage
               const drawnPolygonsToString = JSON.stringify(drawnPolygons[0]);
               localStorage.setItem("polygon-features", drawnPolygonsToString);
@@ -554,11 +559,9 @@ if (localStorage.getItem("polygon-features") === null) {
   }
 } else {
   retrieveFeaturesFromLocalStorage();
-
   // polygons drawn after browser closed/refreshed
   drawingSource.on("change", function() {
     const features = drawingSource.getFeatures();
-
     // loop through features to add polygon area to feature's properties
     features.forEach(feature => {
       const geom = feature.values_.geometry;
@@ -567,7 +570,7 @@ if (localStorage.getItem("polygon-features") === null) {
     });
 
     //  convert json to object
-    const json = format.writeFeatures(features);
+    const featuresToObject = format.writeFeatures(features);
 
     // add id to features object for each polygon
 
@@ -575,9 +578,8 @@ if (localStorage.getItem("polygon-features") === null) {
       const id = feature.ol_uid;
       feature.set("polygon-id", id);
     });
-
     // store in local storage
-    localStorage.setItem("new-polygon-features", json);
+    localStorage.setItem("new-polygon-features", featuresToObject);
   });
 }
 
