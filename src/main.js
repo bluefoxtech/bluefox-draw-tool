@@ -198,6 +198,41 @@ const DrawPolygon = {
 
     this.Polygon.on('drawend', function(e) {
       console.log('DRAW: POLYGON COORDS: ', e.feature.getGeometry().getCoordinates());
+      setTimeout(() => {;
+        if (localStorage.getItem("new-polygon-features") !== null) {
+          retrieveFeaturesFromLocalStorage();
+        }
+  
+        const jdiId = getUrlId();
+  
+        const saveLocalStorageToDatabase = localStorage.getItem(
+          "polygon-features"
+        );
+  
+        const opusUrl = "https://dev.opus4.co.uk/api/v1/call-for-sites/";
+  
+        let mapId = "1233/";
+  
+        let postDatabaseUrl = opusUrl + mapId + jdiId;
+  
+        let postOptions = {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
+          },
+          body: jdiId + "=" + saveLocalStorageToDatabase
+        };
+  
+        fetch(postDatabaseUrl, postOptions)
+          .then(response => {
+            if (response.status === 200) {
+             console.log('SAVED');
+            } 
+          })
+          .catch(err => {
+            console.log(err);
+          });
+      }, 1000);
     });
   },
   Polygon: new Draw({
@@ -521,7 +556,7 @@ Polygons will persist if user closes/refreshes/opens new tab in browser
 // check if localStorage has an item
 if (localStorage.getItem("polygon-features") === null) {
   //Check database to see if a record exists
-  // checkDatabase(); // UNCOMMENT LATER
+  //checkDatabase(); // UNCOMMENT LATER
   // if there's nothing stored in localStorage and the drawnPolygons array is empty
   if (drawnPolygons.length === 0) {
     drawingSource.on("change", function() {
@@ -555,6 +590,7 @@ if (localStorage.getItem("polygon-features") === null) {
       // add to local storage
       const jsonFeaturesToString = JSON.stringify(jsonFeaturesToObject);
       localStorage.setItem("polygon-features", jsonFeaturesToString);
+      console.log('SAVED TO LS');
     });
   }
 } else {
@@ -651,7 +687,8 @@ submitButton.addEventListener("click", function() {
         retrieveFeaturesFromLocalStorage();
       }
 
-      const jdiId = getUrlId();
+      // const jdiId = getUrlId();
+      const jdiId = "phoebe101";
 
       const saveLocalStorageToDatabase = localStorage.getItem(
         "polygon-features"
@@ -707,3 +744,4 @@ clear.addEventListener("click", function() {
     window.location.reload();
   }
 });
+
