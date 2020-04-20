@@ -168,9 +168,13 @@ const ModifyPolygon = {
       ModifyPolygon.setActive(true);
       drawingLayer.setStyle(modifyPolygonStyles);
 
+      console.log('MODIFIED');
       // store changes in local storage
       const modifiedFeaturesToString = JSON.stringify(drawnPolygons[0]);
       localStorage.setItem("polygon-features", modifiedFeaturesToString);
+
+      autoSaveFeatures();
+
     });
 
     this.setEvents();
@@ -200,73 +204,9 @@ const DrawPolygon = {
     this.Polygon.setActive(false);
 
     this.Polygon.on("drawend", function (e) {
-      console.log(
-        "DRAW: POLYGON COORDS: ",
-        e.feature.getGeometry().getCoordinates()
-      );
-      setTimeout(() => {
-        // save after each polygon is drawn
-        let existingPolygonsInLocalStorage = [];
-        let saveNewPolygonsToDatabase;
-
-        if (localStorage.getItem("new-polygon-features") !== null) {
-          // retrieve polygon coords from local storage, convert to object
-          const getLocalStorage = localStorage.getItem("polygon-features");
-          const convertLocalStorageToObject = JSON.parse(getLocalStorage);
-          console.log(convertLocalStorageToObject);
-
-          // push local storage to existingPolygonsInLocalStorage array
-          existingPolygonsInLocalStorage.push(convertLocalStorageToObject);
-
-          const getNewPolygons = localStorage.getItem("new-polygon-features");
-          const convertNewPolygonsFromLocalStorageToObject = JSON.parse(
-            getNewPolygons
-          );
-          console.log(
-            "NEW POLYGON OBJECT",
-            convertNewPolygonsFromLocalStorageToObject
-          );
-          const newPolygonsfeatures =
-            convertNewPolygonsFromLocalStorageToObject["features"];
-
-          // loop and push new features to newPolygonsFeatures array
-          newPolygonsfeatures.forEach((item) => {
-            existingPolygonsInLocalStorage[0]["features"].push(item);
-          });
-          console.log("NEW POLYGON FEATURES", existingPolygonsInLocalStorage);
-          saveNewPolygonsToDatabase = JSON.stringify(existingPolygonsInLocalStorage.pop());
-          console.log(saveNewPolygonsToDatabase);
-        } else {
-          saveNewPolygonsToDatabase = localStorage.getItem("polygon-features");
-          console.log('without saving', saveNewPolygonsToDatabase);
-        }
-
-        const jdiId = getUrlId();
-
-        const opusUrl = "https://dev.opus4.co.uk/api/v1/call-for-sites/";
-
-        let mapId = "1233/";
-
-        let postDatabaseUrl = opusUrl + mapId + jdiId;
-
-        let postOptions = {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-          },
-          body: jdiId + "=" + saveNewPolygonsToDatabase,
-        };
-
-        fetch(postDatabaseUrl, postOptions)
-          .then((response) => {
-            if (response.status === 200) {
-              console.log("SAVED");
-            }
-          })
-          .catch((err) => {
-            console.log(err);
-          });
-      }, 1000);
+      console.log('DRAW POLYGON');
+      
+      autoSaveFeatures();
     });
   },
   Polygon: new Draw({
@@ -402,6 +342,67 @@ const snap = new Snap({
 map.addInteraction(snap);
 
 sync(map);
+
+function autoSaveFeatures() {
+  setTimeout(() => {
+    // save after each polygon is drawn
+    let existingPolygonsInLocalStorage = [];
+    let saveNewPolygonsToDatabase;
+
+    if (localStorage.getItem("new-polygon-features") !== null) {
+      // retrieve polygon coords from local storage, convert to object
+      const getLocalStorage = localStorage.getItem("polygon-features");
+      const convertLocalStorageToObject = JSON.parse(getLocalStorage);
+
+      // push local storage to existingPolygonsInLocalStorage array
+      existingPolygonsInLocalStorage.push(convertLocalStorageToObject);
+
+      const getNewPolygons = localStorage.getItem("new-polygon-features");
+      const convertNewPolygonsFromLocalStorageToObject = JSON.parse(
+        getNewPolygons
+      );
+
+      const newPolygonsfeatures =
+        convertNewPolygonsFromLocalStorageToObject["features"];
+
+      // loop and push new features to newPolygonsFeatures array
+      newPolygonsfeatures.forEach((item) => {
+        existingPolygonsInLocalStorage[0]["features"].push(item);
+      });
+      saveNewPolygonsToDatabase = JSON.stringify(existingPolygonsInLocalStorage.pop());
+      console.log('New polygons or modfied AFTER browser refreshed');
+    } else {
+      saveNewPolygonsToDatabase = localStorage.getItem("polygon-features");
+      console.log('New polygons or modfied BEFORE browser refreshed');
+    }
+
+    const jdiId = getUrlId();
+
+    const opusUrl = "https://dev.opus4.co.uk/api/v1/call-for-sites/";
+
+    let mapId = "1233/";
+
+    let postDatabaseUrl = opusUrl + mapId + jdiId;
+
+    let postOptions = {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+      },
+      body: jdiId + "=" + saveNewPolygonsToDatabase,
+    };
+
+    fetch(postDatabaseUrl, postOptions)
+      .then((response) => {
+        if (response.status === 200) {
+          console.log("SAVED");
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }, 1000);
+}
 
 /**
  * function to format area of polygon and convert to hectares
@@ -545,42 +546,42 @@ const getUrlId = () => {
   return getId[1];
 };
 
-// function checkDatabase() {
-//   const jdiId = getUrlId();
-//   let retrievedFeaturesFromDatabase;
-//   let headerSettings = new Headers();
+function checkDatabase() {
+  const jdiId = getUrlId();
+  let retrievedFeaturesFromDatabase;
+  let headerSettings = new Headers();
 
-//   // request options
-//   let options = {
-//     method: "GET",
-//     headers: headerSettings,
-//     mode: "cors",
-//     cache: "default"
-//   };
+  // request options
+  let options = {
+    method: "GET",
+    headers: headerSettings,
+    mode: "cors",
+    cache: "default"
+  };
 
-//   const opusUrl = "https://dev.opus4.co.uk/api/v1/call-for-sites/";
+  const opusUrl = "https://dev.opus4.co.uk/api/v1/call-for-sites/";
 
-//   let mapId = "1233/";
+  let mapId = "1233/";
 
-//   let getDatabaseUrl = opusUrl + mapId + jdiId;
+  let getDatabaseUrl = opusUrl + mapId + jdiId;
 
-//   let req = new Request(getDatabaseUrl, options);
+  let req = new Request(getDatabaseUrl, options);
 
-//   fetch(req)
-//     .then(response => {
-//       if (response.status === 200) {
-//         return response.json();
-//       }
-//     })
-//     .then(data => {
-//       retrievedFeaturesFromDatabase = Object.values(data).pop();
-//       localStorage.setItem("polygon-features", retrievedFeaturesFromDatabase);
-//       setTimeout(() => location.reload(), 500);
-//     })
-//     .catch(err => {
-//       console.log("No record found in database");
-//     });
-// }
+  fetch(req)
+    .then(response => {
+      if (response.status === 200) {
+        return response.json();
+      }
+    })
+    .then(data => {
+      retrievedFeaturesFromDatabase = Object.values(data).pop();
+      localStorage.setItem("polygon-features", retrievedFeaturesFromDatabase);
+      setTimeout(() => location.reload(), 500);
+    })
+    .catch(err => {
+      console.log("No record found in database");
+    });
+}
 
 /*
 SAVE FEATURE TO LOCALSTORAGE
@@ -590,7 +591,7 @@ Polygons will persist if user closes/refreshes/opens new tab in browser
 // check if localStorage has an item
 if (localStorage.getItem("polygon-features") === null) {
   //Check database to see if a record exists
-  //checkDatabase(); // UNCOMMENT LATER
+  checkDatabase(); // UNCOMMENT LATER
   // if there's nothing stored in localStorage and the drawnPolygons array is empty
   if (drawnPolygons.length === 0) {
     drawingSource.on("change", function () {
