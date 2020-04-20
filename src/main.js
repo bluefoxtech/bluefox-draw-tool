@@ -26,7 +26,7 @@ import { get as getProjection } from "ol/proj";
 const drawnPolygons = [];
 
 const attribution = new Attribution({
-  collapsible: false
+  collapsible: false,
 });
 
 // Projection EPSG: 27700
@@ -49,17 +49,17 @@ const map = new Map({
       source: new VectorSource({
         format: new GeoJSON(),
         url: "./src/data/line.geojson",
-        attributions: "© Crown copyright and database rights 2020 OS 100038864"
-      })
-    })
+        attributions: "© Crown copyright and database rights 2020 OS 100038864",
+      }),
+    }),
   ],
   controls: defaultControls({ attribution: false }).extend([attribution]),
   view: new View({
     // center: fromLonLat([-3.82877, 53.28088]), // epsg:3857
     zoom: 18,
     center: [278100, 377500], // 27700
-    projection: britishNationalGridProjection
-  })
+    projection: britishNationalGridProjection,
+  }),
 });
 
 // collapse the attribution infomation when screen < 600px
@@ -75,36 +75,40 @@ checkSize();
 // polygon data layer
 const mapSource = new VectorSource({
   format: new GeoJSON(),
-  url: "./src/data/poly.geojson"
+  url: "./src/data/poly.geojson",
 });
 
 const mapLayer = new VectorLayer({
-  source: mapSource
+  source: mapSource,
 });
 
 //OpusMap WMS layer
 const opusMapWms = new TileLayer({
   source: new TileWMS({
-    urls: ["https://ts1.opus4.co.uk/wms", "https://ts2.opus4.co.uk/wms", "https://ts3.opus4.co.uk/wms"],
+    urls: [
+      "https://ts1.opus4.co.uk/wms",
+      "https://ts2.opus4.co.uk/wms",
+      "https://ts3.opus4.co.uk/wms",
+    ],
     params: {
       LAYERS: "b:15",
       VERSION: "1.1.1",
-      SRS: "EPSG:27700"
-    }
-  })
+      SRS: "EPSG:27700",
+    },
+  }),
 });
 
 // draw layer
 const drawingSource = new VectorSource();
 
 const drawingLayer = new VectorLayer({
-  source: drawingSource
+  source: drawingSource,
 });
 
 // add saved polygons from local storage as a map layer. Change vector source dynamically
 const savedPolygonsSource = new VectorSource();
 const savedPolygonsLayer = new VectorLayer({
-  source: savedPolygonsSource
+  source: savedPolygonsSource,
 });
 
 // add additional layers to map layers to Map
@@ -113,7 +117,7 @@ map.addLayer(mapLayer);
 map.addLayer(drawingLayer);
 map.addLayer(savedPolygonsLayer);
 
-// projection of features when drawing 
+// projection of features when drawing
 const format = new GeoJSON({ featureProjection: "EPSG:3857" });
 
 /**
@@ -121,28 +125,27 @@ const format = new GeoJSON({ featureProjection: "EPSG:3857" });
  **/
 //modify polygon interaction
 const ModifyPolygon = {
-  init: function(e) {
+  init: function (e) {
     this.select = new Select({
       style: selectedPolygonStyles,
-      layers: [drawingLayer, savedPolygonsLayer]
+      layers: [drawingLayer, savedPolygonsLayer],
     });
     map.addInteraction(this.select);
 
     this.modify = new Modify({
-      features: this.select.getFeatures()
+      features: this.select.getFeatures(),
     });
     map.addInteraction(this.modify);
 
     // event listener that is fired when you've modified a feature
-    this.modify.on("modifyend", function(e) {
+    this.modify.on("modifyend", function (e) {
       // update the area of polygon in feature's properties.
       const modifiedFeatures = e.features.array_;
-      modifiedFeatures.forEach(feature => {
+      modifiedFeatures.forEach((feature) => {
         const modifiedGeom = feature.values_.geometry;
         let modifiedOutput = formatArea(modifiedGeom);
         feature.set("polygon-area", modifiedOutput);
       });
-      console.log("POLYGON MODIFIED");
       const modifyFeatureCoords = format.writeFeatures(e.features.array_);
       const modifyFeatureCoordsToObject = JSON.parse(modifyFeatureCoords);
       const drawnPolygonsFeatures = drawnPolygons[0].features;
@@ -172,19 +175,19 @@ const ModifyPolygon = {
 
     this.setEvents();
   },
-  setEvents: function() {
+  setEvents: function () {
     const selectedFeatures = this.select.getFeatures();
 
-    this.select.on("change:active", function() {
-      selectedFeatures.forEach(function(each) {
+    this.select.on("change:active", function () {
+      selectedFeatures.forEach(function (each) {
         selectedFeatures.remove(each);
       });
     });
   },
-  setActive: function(active) {
+  setActive: function (active) {
     this.select.setActive(active);
     this.modify.setActive(active);
-  }
+  },
 };
 ModifyPolygon.init();
 
@@ -192,44 +195,75 @@ const optionsForm = document.getElementById("options-form");
 
 // draw polygon interaction
 const DrawPolygon = {
-  init: function() {
+  init: function () {
     map.addInteraction(this.Polygon);
     this.Polygon.setActive(false);
 
-    this.Polygon.on('drawend', function(e) {
-      console.log('DRAW: POLYGON COORDS: ', e.feature.getGeometry().getCoordinates());
-      setTimeout(() => {;
+    this.Polygon.on("drawend", function (e) {
+      console.log(
+        "DRAW: POLYGON COORDS: ",
+        e.feature.getGeometry().getCoordinates()
+      );
+      setTimeout(() => {
+        // save after each polygon is drawn
+        let existingPolygonsInLocalStorage = [];
+        let saveNewPolygonsToDatabase;
+
         if (localStorage.getItem("new-polygon-features") !== null) {
-          retrieveFeaturesFromLocalStorage();
+          // retrieve polygon coords from local storage, convert to object
+          const getLocalStorage = localStorage.getItem("polygon-features");
+          const convertLocalStorageToObject = JSON.parse(getLocalStorage);
+          console.log(convertLocalStorageToObject);
+
+          // push local storage to existingPolygonsInLocalStorage array
+          existingPolygonsInLocalStorage.push(convertLocalStorageToObject);
+
+          const getNewPolygons = localStorage.getItem("new-polygon-features");
+          const convertNewPolygonsFromLocalStorageToObject = JSON.parse(
+            getNewPolygons
+          );
+          console.log(
+            "NEW POLYGON OBJECT",
+            convertNewPolygonsFromLocalStorageToObject
+          );
+          const newPolygonsfeatures =
+            convertNewPolygonsFromLocalStorageToObject["features"];
+
+          // loop and push new features to newPolygonsFeatures array
+          newPolygonsfeatures.forEach((item) => {
+            existingPolygonsInLocalStorage[0]["features"].push(item);
+          });
+          console.log("NEW POLYGON FEATURES", existingPolygonsInLocalStorage);
+          saveNewPolygonsToDatabase = JSON.stringify(existingPolygonsInLocalStorage.pop());
+          console.log(saveNewPolygonsToDatabase);
+        } else {
+          saveNewPolygonsToDatabase = localStorage.getItem("polygon-features");
+          console.log('without saving', saveNewPolygonsToDatabase);
         }
-  
+
         const jdiId = getUrlId();
-  
-        const saveLocalStorageToDatabase = localStorage.getItem(
-          "polygon-features"
-        );
-  
+
         const opusUrl = "https://dev.opus4.co.uk/api/v1/call-for-sites/";
-  
+
         let mapId = "1233/";
-  
+
         let postDatabaseUrl = opusUrl + mapId + jdiId;
-  
+
         let postOptions = {
           method: "POST",
           headers: {
-            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
+            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
           },
-          body: jdiId + "=" + saveLocalStorageToDatabase
+          body: jdiId + "=" + saveNewPolygonsToDatabase,
         };
-  
+
         fetch(postDatabaseUrl, postOptions)
-          .then(response => {
+          .then((response) => {
             if (response.status === 200) {
-             console.log('SAVED');
-            } 
+              console.log("SAVED");
+            }
           })
-          .catch(err => {
+          .catch((err) => {
             console.log(err);
           });
       }, 1000);
@@ -237,12 +271,12 @@ const DrawPolygon = {
   },
   Polygon: new Draw({
     source: drawingSource,
-    type: "Polygon"
+    type: "Polygon",
   }),
-  getActive: function() {
+  getActive: function () {
     return this.activeType ? this[this.activeType].getActive() : false;
   },
-  setActive: function(active) {
+  setActive: function (active) {
     const type = optionsForm.elements["draw-type"].value;
     if (active) {
       this.activeType && this[this.activeType].setActive(false);
@@ -252,31 +286,31 @@ const DrawPolygon = {
       this.activeType && this[this.activeType].setActive(false);
       this.activeType = null;
     }
-  }
+  },
 };
 DrawPolygon.init();
 
 // DELETE FUNCTION
 const DeletePolygon = {
-  init: function() {
+  init: function () {
     this.deleteSelect = new Select({
       layers: [drawingLayer, savedPolygonsLayer],
       style: new Style({
         stroke: new Stroke({
           color: "#F89911",
           width: 2,
-          lineDash: [5, 5]
+          lineDash: [5, 5],
         }),
         fill: new Fill({
-          color: "rgba(255, 255, 255, 0.3)"
-        })
-      })
+          color: "rgba(255, 255, 255, 0.3)",
+        }),
+      }),
     });
     map.addInteraction(this.deleteSelect);
     this.setEvents();
 
     // get features from the selected polygon
-    this.deleteSelect.getFeatures().on("add", function(feature) {
+    this.deleteSelect.getFeatures().on("add", function (feature) {
       function checkDelete() {
         if (confirm("Are you sure you want to delete?")) {
           if (feature) {
@@ -284,7 +318,7 @@ const DeletePolygon = {
             try {
               drawingSource.removeFeature(feature.element);
               feature.target.remove(feature.element);
-              console.log('DELETE: DRAWING SOURCE: ', drawnPolygons)
+              console.log("DELETE: DRAWING SOURCE: ", drawnPolygons);
             } catch (err) {}
             // if feature isn't in drawingsource then try and remove it from savedPolygonsSource
             try {
@@ -292,11 +326,11 @@ const DeletePolygon = {
               feature.target.remove(feature.element);
               // find the polygon index position in drawnPolygons array and remove
               let position = drawnPolygons[0].features.findIndex(
-                item => item.id === feature.element.id_
+                (item) => item.id === feature.element.id_
               );
               let deletedItems = drawnPolygons[0].features.splice(position, 1);
-              
-              console.log('DELETE: POLYGON SOURCE: ', drawnPolygons)
+
+              console.log("DELETE: POLYGON SOURCE: ", drawnPolygons);
               // store updated drawnPolygons array in local storage
               const drawnPolygonsToString = JSON.stringify(drawnPolygons[0]);
               localStorage.setItem("polygon-features", drawnPolygonsToString);
@@ -313,23 +347,23 @@ const DeletePolygon = {
       setTimeout(checkDelete, 500);
     });
   },
-  setEvents: function() {
+  setEvents: function () {
     const selectedDeleteFeatures = this.deleteSelect.getFeatures();
 
-    this.deleteSelect.on("change:active", function() {
-      selectedDeleteFeatures.forEach(function(each) {
+    this.deleteSelect.on("change:active", function () {
+      selectedDeleteFeatures.forEach(function (each) {
         selectedDeleteFeatures.remove(each);
       });
     });
   },
-  setActive: function(active) {
+  setActive: function (active) {
     this.deleteSelect.setActive(active);
-  }
+  },
 };
 DeletePolygon.init();
 
 // Let user change the function type.
-optionsForm.onchange = function(e) {
+optionsForm.onchange = function (e) {
   const type = e.target.getAttribute("name");
   const value = e.target.value;
   if (type == "draw-type") {
@@ -363,7 +397,7 @@ DeletePolygon.setActive(false);
 
 // drawn features snaps to map data
 const snap = new Snap({
-  source: mapSource
+  source: mapSource,
 });
 map.addInteraction(snap);
 
@@ -372,7 +406,7 @@ sync(map);
 /**
  * function to format area of polygon and convert to hectares
  */
-const formatArea = function(polygon) {
+const formatArea = function (polygon) {
   const area = getArea(polygon);
   let output = area / 10000;
   output =
@@ -387,25 +421,25 @@ function stylePolygon(feature) {
   return [
     new Style({
       stroke: new Stroke({
-        color: "red"
+        color: "red",
       }),
       fill: new Fill({
-        color: "rgba(255, 255, 255, 0.5)"
+        color: "rgba(255, 255, 255, 0.5)",
       }),
       text: new Text({
         font: "bold 14px Arial, san-serif",
         textBaseline: "center",
         backgroundFill: new Fill({
-          color: "#535353"
+          color: "#535353",
         }),
         fill: new Fill({
-          color: "white"
+          color: "white",
         }),
         // add polygon area as text
         text: feature.get("polygon-area"),
-        padding: [3, 2, 2, 2]
-      })
-    })
+        padding: [3, 2, 2, 2],
+      }),
+    }),
   ];
 }
 
@@ -418,38 +452,38 @@ function modifyPolygonStyles(feature) {
     new Style({
       stroke: new Stroke({
         color: "blue",
-        width: 3
+        width: 3,
       }),
       fill: new Fill({
-        color: "rgba(255, 255, 255, 0.5)"
+        color: "rgba(255, 255, 255, 0.5)",
       }),
       text: new Text({
         font: "bold 14px Arial, san-serif",
         textBaseline: "center",
         backgroundFill: new Fill({
-          color: "#535353"
+          color: "#535353",
         }),
         fill: new Fill({
-          color: "white"
+          color: "white",
         }),
         // add polygon area as text
         text: feature.get("polygon-area"),
-        padding: [3, 2, 2, 2]
-      })
+        padding: [3, 2, 2, 2],
+      }),
     }),
     new Style({
       image: new CircleStyle({
         radius: 5,
         fill: new Fill({
-          color: "orange"
-        })
+          color: "orange",
+        }),
       }),
-      geometry: function(feature) {
+      geometry: function (feature) {
         // return the coordinates of the first ring of the polygon
         var coordinates = feature.getGeometry().getCoordinates()[0];
         return new MultiPoint(coordinates);
-      }
-    })
+      },
+    }),
   ];
 }
 
@@ -463,37 +497,37 @@ function selectedPolygonStyles(feature) {
       stroke: new Stroke({
         color: "blue",
         width: 3,
-        lineDash: [5, 5]
+        lineDash: [5, 5],
       }),
       fill: new Fill({
-        color: "rgba(255, 255, 255, 0.5)"
+        color: "rgba(255, 255, 255, 0.5)",
       }),
       text: new Text({
         font: "bold 14px Arial, san-serif",
         textBaseline: "center",
         backgroundFill: new Fill({
-          color: "#535353"
+          color: "#535353",
         }),
         fill: new Fill({
-          color: "white"
+          color: "white",
         }),
         text: feature.get("polygon-area"),
-        padding: [3, 2, 2, 2]
-      })
+        padding: [3, 2, 2, 2],
+      }),
     }),
     new Style({
       image: new CircleStyle({
         radius: 5,
         fill: new Fill({
-          color: "red"
-        })
+          color: "red",
+        }),
       }),
-      geometry: function(feature) {
+      geometry: function (feature) {
         // return the coordinates of the first ring of the polygon
         var coordinates = feature.getGeometry().getCoordinates()[0];
         return new MultiPoint(coordinates);
-      }
-    })
+      },
+    }),
   ];
 }
 
@@ -559,11 +593,11 @@ if (localStorage.getItem("polygon-features") === null) {
   //checkDatabase(); // UNCOMMENT LATER
   // if there's nothing stored in localStorage and the drawnPolygons array is empty
   if (drawnPolygons.length === 0) {
-    drawingSource.on("change", function() {
+    drawingSource.on("change", function () {
       const features = drawingSource.getFeatures();
 
       // loop through features to add polygon area to feature's properties
-      features.forEach(feature => {
+      features.forEach((feature) => {
         const geom = feature.values_.geometry;
         let output = formatArea(geom);
         feature.set("polygon-area", output);
@@ -576,7 +610,7 @@ if (localStorage.getItem("polygon-features") === null) {
 
       // add IDs generated by OL into polygonFeatures array
 
-      features.forEach(feature => {
+      features.forEach((feature) => {
         const id = feature.ol_uid;
         feature.set("polygon-id", id);
       });
@@ -590,16 +624,15 @@ if (localStorage.getItem("polygon-features") === null) {
       // add to local storage
       const jsonFeaturesToString = JSON.stringify(jsonFeaturesToObject);
       localStorage.setItem("polygon-features", jsonFeaturesToString);
-      console.log('SAVED TO LS');
     });
   }
 } else {
   retrieveFeaturesFromLocalStorage();
   // polygons drawn after browser closed/refreshed
-  drawingSource.on("change", function() {
+  drawingSource.on("change", function () {
     const features = drawingSource.getFeatures();
     // loop through features to add polygon area to feature's properties
-    features.forEach(feature => {
+    features.forEach((feature) => {
       const geom = feature.values_.geometry;
       let output = formatArea(geom);
       feature.set("polygon-area", output);
@@ -610,7 +643,7 @@ if (localStorage.getItem("polygon-features") === null) {
 
     // add id to features object for each polygon
 
-    features.forEach(feature => {
+    features.forEach((feature) => {
       const id = feature.ol_uid;
       feature.set("polygon-id", id);
     });
@@ -642,11 +675,11 @@ function retrieveFeaturesFromLocalStorage() {
     const newPolygonsfeaturesObject = convertNewPolygonsToObject["features"];
 
     // loop and push new features to drawnPolygons array
-    newPolygonsfeaturesObject.forEach(item => {
+    newPolygonsfeaturesObject.forEach((item) => {
       drawnPolygons[0]["features"].push(item);
     });
 
-    // stores the all polygons together under 'polygon-features'
+    // stores all polygons together under 'polygon-features'
     const stringifyNewPolygons = JSON.stringify(drawnPolygons[0]);
     localStorage.setItem("polygon-features", stringifyNewPolygons);
 
@@ -673,7 +706,7 @@ function retrieveFeaturesFromLocalStorage() {
 SUBMIT BUTTON
 */
 const submitButton = document.getElementById("submit-drawing");
-submitButton.addEventListener("click", function() {
+submitButton.addEventListener("click", function () {
   if (drawnPolygons.length === 0) {
     alert("You cannot submit an empty drawing.");
   } else if (
@@ -703,18 +736,18 @@ submitButton.addEventListener("click", function() {
       let postOptions = {
         method: "POST",
         headers: {
-          "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
+          "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
         },
-        body: jdiId + "=" + saveLocalStorageToDatabase
+        body: jdiId + "=" + saveLocalStorageToDatabase,
       };
 
       fetch(postDatabaseUrl, postOptions)
-        .then(response => {
+        .then((response) => {
           if (response.status === 200) {
             setTimeout(() => {
               alert("Thank you. Your drawing has now been submitted.");
               const features = drawingLayer.getSource().getFeatures();
-              features.forEach(feature => {
+              features.forEach((feature) => {
                 drawingLayer.getSource().removeFeature(feature);
               });
               localStorage.clear();
@@ -725,7 +758,7 @@ submitButton.addEventListener("click", function() {
             }, 500);
           }
         })
-        .catch(err => {
+        .catch((err) => {
           console.log(err);
         });
     }
@@ -736,7 +769,7 @@ submitButton.addEventListener("click", function() {
 CLEAR ALL BUTTON
 */
 const clear = document.getElementById("clear");
-clear.addEventListener("click", function() {
+clear.addEventListener("click", function () {
   if (window.confirm("Are you sure you want to delete your drawing(s)?")) {
     drawingSource.clear();
     savedPolygonsSource.clear();
@@ -744,4 +777,3 @@ clear.addEventListener("click", function() {
     window.location.reload();
   }
 });
-
