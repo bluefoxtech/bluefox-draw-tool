@@ -725,8 +725,7 @@ submitButton.addEventListener("click", function () {
         retrieveFeaturesFromLocalStorage();
       }
 
-      // const jdiId = getUrlId();
-      const jdiId = "phoebe101";
+      const jdiId = getUrlId();
 
       const saveLocalStorageToDatabase = localStorage.getItem(
         "polygon-features"
@@ -751,9 +750,14 @@ submitButton.addEventListener("click", function () {
           if (response.status === 200) {
             setTimeout(() => {
               alert("Thank you. Your drawing has now been submitted.");
-              const features = drawingLayer.getSource().getFeatures();
-              features.forEach((feature) => {
+              const featuresFromDrawingLayer = drawingLayer.getSource().getFeatures();
+              featuresFromDrawingLayer.forEach((feature) => {
                 drawingLayer.getSource().removeFeature(feature);
+              });
+
+              const featuresFromSavedPolygonsLayer = savedPolygonsLayer.getSource().getFeatures();
+              featuresFromSavedPolygonsLayer.forEach((feature) => {
+                savedPolygonsLayer.getSource().removeFeature(feature);
               });
               localStorage.clear();
             }, 1000);
