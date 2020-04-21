@@ -712,11 +712,14 @@ SUBMIT BUTTON
 */
 const submitButton = document.getElementById("submit-drawing");
 submitButton.addEventListener("click", function () {
-  if (drawnPolygons.length === 0) {
+  if (drawnPolygons.length === 0 && 
+    localStorage.getItem('new-polygon-features') === null
+  ) {
     alert("You cannot submit an empty drawing.");
   } else if (
     drawnPolygons[0].features.length === 0 &&
-    drawnPolygons.length === 1
+    drawnPolygons.length === 1 && 
+    localStorage.getItem('new-polygon-features') === null
   ) {
     alert("You cannot submit an empty drawing.");
   } else {
