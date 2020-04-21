@@ -258,7 +258,7 @@ const DeletePolygon = {
             try {
               drawingSource.removeFeature(feature.element);
               feature.target.remove(feature.element);
-              console.log("DELETE: DRAWING SOURCE: ", drawnPolygons);
+              console.log("DELETE: DRAWING SOURCE");
             } catch (err) {}
             // if feature isn't in drawingsource then try and remove it from savedPolygonsSource
             try {
@@ -266,15 +266,16 @@ const DeletePolygon = {
               feature.target.remove(feature.element);
               // find the polygon index position in drawnPolygons array and remove
               let position = drawnPolygons[0].features.findIndex(
-                (item) => item.id === feature.element.id_
+                (item) => item.properties['polygon-id'] === feature.element.values_['polygon-id']
               );
               let deletedItems = drawnPolygons[0].features.splice(position, 1);
-
-              console.log("DELETE: POLYGON SOURCE: ", drawnPolygons);
+              console.log("DELETE: POLYGON SOURCE");
               // store updated drawnPolygons array in local storage
               const drawnPolygonsToString = JSON.stringify(drawnPolygons[0]);
               localStorage.setItem("polygon-features", drawnPolygonsToString);
             } catch (err) {}
+
+            autoSaveFeatures();
           }
         } else {
           // do not want to delete then default to draw
@@ -343,6 +344,9 @@ map.addInteraction(snap);
 
 sync(map);
 
+/** 
+*AUTOSAVE FUNCTION
+**/ 
 function autoSaveFeatures() {
   setTimeout(() => {
     // save after each polygon is drawn
@@ -406,7 +410,7 @@ function autoSaveFeatures() {
 
 /**
  * function to format area of polygon and convert to hectares
- */
+ **/
 const formatArea = function (polygon) {
   const area = getArea(polygon);
   let output = area / 10000;
