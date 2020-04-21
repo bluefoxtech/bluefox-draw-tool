@@ -750,15 +750,7 @@ submitButton.addEventListener("click", function () {
           if (response.status === 200) {
             setTimeout(() => {
               alert("Thank you. Your drawing has now been submitted.");
-              const featuresFromDrawingLayer = drawingLayer.getSource().getFeatures();
-              featuresFromDrawingLayer.forEach((feature) => {
-                drawingLayer.getSource().removeFeature(feature);
-              });
-
-              const featuresFromSavedPolygonsLayer = savedPolygonsLayer.getSource().getFeatures();
-              featuresFromSavedPolygonsLayer.forEach((feature) => {
-                savedPolygonsLayer.getSource().removeFeature(feature);
-              });
+              removePolygonsFromMap();
               localStorage.clear();
             }, 1000);
           } else {
@@ -774,15 +766,53 @@ submitButton.addEventListener("click", function () {
   }
 });
 
+function removePolygonsFromMap() {
+  const featuresFromDrawingLayer = drawingLayer.getSource().getFeatures();
+  featuresFromDrawingLayer.forEach((feature) => {
+    drawingLayer.getSource().removeFeature(feature);
+  });
+
+  const featuresFromSavedPolygonsLayer = savedPolygonsLayer.getSource().getFeatures();
+  featuresFromSavedPolygonsLayer.forEach((feature) => {
+    savedPolygonsLayer.getSource().removeFeature(feature);
+  });
+}
+
 /*
 CLEAR ALL BUTTON
 */
 const clear = document.getElementById("clear");
 clear.addEventListener("click", function () {
   if (window.confirm("Are you sure you want to delete your drawing(s)?")) {
-    drawingSource.clear();
-    savedPolygonsSource.clear();
+    removePolygonsFromMap();
     localStorage.clear();
-    window.location.reload();
+    setTimeout(() => {
+      const emptyFeatureObject = {"type":"FeatureCollection","features":[]};
+      const jdiId = getUrlId();
+
+      const opusUrl = "https://dev.opus4.co.uk/api/v1/call-for-sites/";
+
+      let mapId = "1233/";
+
+      let postDatabaseUrl = opusUrl + mapId + jdiId;
+
+      let postOptions = {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+        },
+        body: jdiId + "=" + JSON.stringify(emptyFeatureObject)
+      };
+
+      fetch(postDatabaseUrl, postOptions)
+        .then((response) => {
+          if (response.status === 200) {
+            console.log("DELETED");
+          }
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }, 1000);
   }
 });
