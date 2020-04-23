@@ -168,7 +168,6 @@ const ModifyPolygon = {
       ModifyPolygon.setActive(true);
       drawingLayer.setStyle(modifyPolygonStyles);
 
-      console.log('MODIFIED');
       // store changes in local storage
       const modifiedFeaturesToString = JSON.stringify(drawnPolygons[0]);
       localStorage.setItem("polygon-features", modifiedFeaturesToString);
@@ -204,8 +203,6 @@ const DrawPolygon = {
     this.Polygon.setActive(false);
 
     this.Polygon.on("drawend", function (e) {
-      console.log('DRAW POLYGON');
-      
       autoSaveFeatures();
     });
   },
@@ -258,7 +255,6 @@ const DeletePolygon = {
             try {
               drawingSource.removeFeature(feature.element);
               feature.target.remove(feature.element);
-              console.log("DELETE: DRAWING SOURCE");
             } catch (err) {}
             // if feature isn't in drawingsource then try and remove it from savedPolygonsSource
             try {
@@ -269,7 +265,6 @@ const DeletePolygon = {
                 (item) => item.properties['polygon-id'] === feature.element.values_['polygon-id']
               );
               let deletedItems = drawnPolygons[0].features.splice(position, 1);
-              console.log("DELETE: POLYGON SOURCE");
               // store updated drawnPolygons array in local storage
               const drawnPolygonsToString = JSON.stringify(drawnPolygons[0]);
               localStorage.setItem("polygon-features", drawnPolygonsToString);
@@ -374,10 +369,8 @@ function autoSaveFeatures() {
         existingPolygonsInLocalStorage[0]["features"].push(item);
       });
       saveNewPolygonsToDatabase = JSON.stringify(existingPolygonsInLocalStorage.pop());
-      console.log('New polygons or modfied AFTER browser refreshed');
     } else {
       saveNewPolygonsToDatabase = localStorage.getItem("polygon-features");
-      console.log('New polygons or modfied BEFORE browser refreshed');
     }
 
     const jdiId = getUrlId();
@@ -595,7 +588,7 @@ Polygons will persist if user closes/refreshes/opens new tab in browser
 // check if localStorage has an item
 if (localStorage.getItem("polygon-features") === null) {
   //Check database to see if a record exists
-  checkDatabase(); // UNCOMMENT LATER
+  checkDatabase(); 
   // if there's nothing stored in localStorage and the drawnPolygons array is empty
   if (drawnPolygons.length === 0) {
     drawingSource.on("change", function () {
