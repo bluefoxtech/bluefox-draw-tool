@@ -571,7 +571,7 @@ function checkDatabase() {
       }
     })
     .then(data => {
-      retrievedFeaturesFromDatabase = Object.values(data).pop();
+      retrievedFeaturesFromDatabase = JSON.stringify(data);
       localStorage.setItem("polygon-features", retrievedFeaturesFromDatabase);
       setTimeout(() => location.reload(), 500);
     })
