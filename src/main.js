@@ -370,7 +370,8 @@ function autoSaveFeatures() {
       });
       saveNewPolygonsToDatabase = JSON.stringify(existingPolygonsInLocalStorage.pop());
     } else {
-      saveNewPolygonsToDatabase = localStorage.getItem("polygon-features");
+      const jdiId = getUrlId();
+      saveNewPolygonsToDatabase = localStorage.getItem(jdiId + "polygon-features");
     }
 
     const jdiId = getUrlId();
@@ -543,8 +544,10 @@ const getUrlId = () => {
   return getId[1];
 };
 
+const jdiId = getUrlId();
+console.log(jdiId);
+
 function checkDatabase() {
-  const jdiId = getUrlId();
   let retrievedFeaturesFromDatabase;
   let headerSettings = new Headers();
 
@@ -621,7 +624,7 @@ if (localStorage.getItem("polygon-features") === null) {
 
       // add to local storage
       const jsonFeaturesToString = JSON.stringify(jsonFeaturesToObject);
-      localStorage.setItem("polygon-features", jsonFeaturesToString);
+      localStorage.setItem(jdiId + "polygon-features", jsonFeaturesToString);
     });
   }
 } else {
