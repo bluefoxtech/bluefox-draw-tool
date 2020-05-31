@@ -170,7 +170,8 @@ const ModifyPolygon = {
 
       // store changes in local storage
       const modifiedFeaturesToString = JSON.stringify(drawnPolygons[0]);
-      localStorage.setItem("polygon-features", modifiedFeaturesToString);
+      let jdiId = getUrlId();
+      localStorage.setItem(jdiId + "polygon-features", modifiedFeaturesToString);
 
       autoSaveFeatures();
 
@@ -267,7 +268,8 @@ const DeletePolygon = {
               let deletedItems = drawnPolygons[0].features.splice(position, 1);
               // store updated drawnPolygons array in local storage
               const drawnPolygonsToString = JSON.stringify(drawnPolygons[0]);
-              localStorage.setItem("polygon-features", drawnPolygonsToString);
+              let jdiId = getUrlId();
+              localStorage.setItem(jdiId + "polygon-features", drawnPolygonsToString);
             } catch (err) {}
 
             autoSaveFeatures();
@@ -347,16 +349,17 @@ function autoSaveFeatures() {
     // save after each polygon is drawn
     let existingPolygonsInLocalStorage = [];
     let saveNewPolygonsToDatabase;
+    let jdiId = getUrlId();
 
-    if (localStorage.getItem("new-polygon-features") !== null) {
+    if (localStorage.getItem(jdiId + "new-polygon-features") !== null) {
       // retrieve polygon coords from local storage, convert to object
-      const getLocalStorage = localStorage.getItem("polygon-features");
+      const getLocalStorage = localStorage.getItem(jdiId + "polygon-features");
       const convertLocalStorageToObject = JSON.parse(getLocalStorage);
 
       // push local storage to existingPolygonsInLocalStorage array
       existingPolygonsInLocalStorage.push(convertLocalStorageToObject);
 
-      const getNewPolygons = localStorage.getItem("new-polygon-features");
+      const getNewPolygons = localStorage.getItem(jdiId + "new-polygon-features");
       const convertNewPolygonsFromLocalStorageToObject = JSON.parse(
         getNewPolygons
       );
@@ -370,11 +373,11 @@ function autoSaveFeatures() {
       });
       saveNewPolygonsToDatabase = JSON.stringify(existingPolygonsInLocalStorage.pop());
     } else {
-      const jdiId = getUrlId();
+      let jdiId = getUrlId();
       saveNewPolygonsToDatabase = localStorage.getItem(jdiId + "polygon-features");
     }
 
-    const jdiId = getUrlId();
+    // let jdiId = getUrlId();
 
     const opusUrl = "https://dev.opus4.co.uk/api/v1/call-for-sites/";
 
@@ -544,10 +547,8 @@ const getUrlId = () => {
   return getId[1];
 };
 
-const jdiId = getUrlId();
-console.log(jdiId);
-
 function checkDatabase() {
+  let jdiId = getUrlId();
   let retrievedFeaturesFromDatabase;
   let headerSettings = new Headers();
 
@@ -575,7 +576,7 @@ function checkDatabase() {
     })
     .then(data => {
       retrievedFeaturesFromDatabase = JSON.stringify(data);
-      localStorage.setItem("polygon-features", retrievedFeaturesFromDatabase);
+      localStorage.setItem(jdiId + "polygon-features", retrievedFeaturesFromDatabase);
       setTimeout(() => location.reload(), 500);
     })
     .catch(err => {
@@ -589,7 +590,9 @@ Polygons will persist if user closes/refreshes/opens new tab in browser
 */
 
 // check if localStorage has an item
-if (localStorage.getItem("polygon-features") === null) {
+let jdiId = getUrlId();
+
+if (localStorage.getItem(jdiId + "polygon-features") === null) {
   //Check database to see if a record exists
   checkDatabase(); 
   // if there's nothing stored in localStorage and the drawnPolygons array is empty
@@ -659,16 +662,17 @@ function to retrieve features from local storage
 function retrieveFeaturesFromLocalStorage() {
   // If there are features stored in Local Storage('polygon-features') then
   // retrieve polygon coords from local storage, convert to object
-  const retrieveLocalStorage = localStorage.getItem("polygon-features");
+  let jdiId = getUrlId();
+  const retrieveLocalStorage = localStorage.getItem(jdiId + "polygon-features");
   const convertLocalStorageToObject = JSON.parse(retrieveLocalStorage);
 
   // push local storage to drawn polygons array
   drawnPolygons.push(convertLocalStorageToObject);
 
   // if you've refreshed and drawn additional features, then retrieve old features from Local Storage
-  if (localStorage.getItem("new-polygon-features") !== null) {
+  if (localStorage.getItem(jdiId + "new-polygon-features") !== null) {
     const retrieveLocalStorageNewPolygons = localStorage.getItem(
-      "new-polygon-features"
+      jdiId + "new-polygon-features"
     );
     const convertNewPolygonsToObject = JSON.parse(
       retrieveLocalStorageNewPolygons
@@ -682,10 +686,10 @@ function retrieveFeaturesFromLocalStorage() {
 
     // stores all polygons together under 'polygon-features'
     const stringifyNewPolygons = JSON.stringify(drawnPolygons[0]);
-    localStorage.setItem("polygon-features", stringifyNewPolygons);
+    localStorage.setItem(jdiId + "polygon-features", stringifyNewPolygons);
 
     //clear new-polygon-features key in local storage
-    localStorage.removeItem("new-polygon-features");
+    localStorage.removeItem(jdiId + "new-polygon-features");
   }
 
   // change the saved polygons source to features in local storage
