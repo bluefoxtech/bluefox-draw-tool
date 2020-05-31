@@ -652,7 +652,8 @@ if (localStorage.getItem(jdiId + "polygon-features") === null) {
       feature.set("polygon-id", id);
     });
     // store in local storage
-    localStorage.setItem("new-polygon-features", featuresToObject);
+    // let jdiId = getUrlId();
+    localStorage.setItem(jdiId + "new-polygon-features", featuresToObject);
   });
 }
 
