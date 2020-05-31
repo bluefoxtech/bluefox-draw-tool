@@ -377,8 +377,6 @@ function autoSaveFeatures() {
       saveNewPolygonsToDatabase = localStorage.getItem(jdiId + "polygon-features");
     }
 
-    // let jdiId = getUrlId();
-
     const opusUrl = "https://dev.opus4.co.uk/api/v1/call-for-sites/";
 
     let mapId = "1233/";
@@ -652,7 +650,6 @@ if (localStorage.getItem(jdiId + "polygon-features") === null) {
       feature.set("polygon-id", id);
     });
     // store in local storage
-    // let jdiId = getUrlId();
     localStorage.setItem(jdiId + "new-polygon-features", featuresToObject);
   });
 }
@@ -697,7 +694,7 @@ function retrieveFeaturesFromLocalStorage() {
   savedPolygonsLayer
     .getSource()
     .addFeatures(format.readFeatures(convertLocalStorageToObject));
-
+    
   // set the style of the drawing layer
   savedPolygonsLayer.setStyle(stylePolygon);
 
@@ -729,7 +726,7 @@ submitButton.addEventListener("click", function () {
         retrieveFeaturesFromLocalStorage();
       }
 
-      const jdiId = getUrlId();
+      let jdiId = getUrlId();
 
       const saveLocalStorageToDatabase = localStorage.getItem(
         "polygon-features"
